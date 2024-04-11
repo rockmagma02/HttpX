@@ -1,0 +1,46 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+default_stages: [commit, push, manual]
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-case-conflict
+      - id: check-docstring-first
+      - id: check-executables-have-shebangs
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-shebang-scripts-are-executable
+      - id: check-symlinks
+      - id: check-toml
+      - id: check-xml
+      - id: check-yaml
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: pretty-format-json
+      - id: trailing-whitespace
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.2.6
+    hooks:
+      - id: codespell
+        exclude: |
+          (?x)(
+            ^docs/source/spelling_wordlist.txt$
+          )
+        args:
+          - -L
+          - "inout"
+
+  - repo: https://github.com/realm/SwiftLint
+    rev: 0.54.0
+    hooks:
+      - id: swiftlint
+        entry: swiftlint --config .swiftlint.yaml
+  - repo: local
+    hooks:
+      - id: swiftformat
+        name: swiftformat
+        language: system
+        entry: swiftformat . --verbose
+        types: [swift]

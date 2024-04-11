@@ -1,0 +1,36 @@
+name: Check
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  # Allow to trigger the workflow manually
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    runs-on: macos-13
+    steps:
+      - uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: "5"
+      - uses: actions/checkout@v4
+      - name: build
+        run: swift build
+      # will be added after mocking is implemented
+      # - name: test
+      #   run: swift test
+      - name: format
+        run: make swiftformat
+      - name: pre-commit
+        run: make pre-commit
+      - name: addlicense
+        run: make addlicense-directly
