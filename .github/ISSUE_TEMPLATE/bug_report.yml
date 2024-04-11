@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Please do your best to make the issue as easy to act on as possible, and only submit here if there is clearly a problem with HttpX (ask in [Discussions]() first if unsure).
+        Please do your best to make the issue as easy to act on as possible, and only submit here if there is clearly a problem with HttpX (ask in [Discussions](https://github.com/rockmagma02/HttpX/discussions) first if unsure).
 
   - type: checkboxes
     id: steps
@@ -14,11 +14,11 @@ body:
       label: Required prerequisites
       description: Make sure you've completed the following steps before submitting your issue -- thank you!
       options:
-        - label: I have read the documentation <>.
+        - label: I have read the documentation <http://httpx.ruiyangsun.com/documentation/httpx/>.
           required: true
-        - label: I have searched the [Issue Tracker]() and [Discussions]() that this hasn't already been reported. (+1 or comment there if it has.)
+        - label: I have searched the [Issue Tracker](https://github.com/rockmagma02/HttpX/issues) and [Discussions](https://github.com/rockmagma02/HttpX/discussions) that this hasn't already been reported. (+1 or comment there if it has.)
           required: true
-        - label: Consider asking first in a [Discussion]().
+        - label: Consider asking first in a [Discussion](https://github.com/rockmagma02/HttpX/discussions).
           required: false
 
   - type: input
