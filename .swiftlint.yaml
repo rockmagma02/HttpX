@@ -145,9 +145,9 @@ analyzer_rules: # rules run by `swiftlint analyze`
 
 included: # case-sensitive paths to include during linting. `--path` is ignored if present
   - Sources
-  - Package.swift
 excluded: # case-sensitive paths to ignore during linting. Takes precedence over `included`
   - Tests
+  - Package.swift
 
 # If true, SwiftLint will not fail if no lintable files are found.
 allow_zero_lintable_files: true
