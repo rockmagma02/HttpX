@@ -41,6 +41,18 @@ public extension URL {
         self = components.url!
     }
 
+    func networkLocation(percentEncoded: Bool = false) -> String {
+        let host = host(percentEncoded: percentEncoded) ?? ""
+        let port = port ?? Self.portOrDefault(self) ?? Self.httpDefaultPort
+        let user = user(percentEncoded: percentEncoded)
+        let password = password(percentEncoded: percentEncoded)
+        var userinfo: String?
+        if let user {
+            userinfo = password == nil ? user : "\(user):\(password!)"
+        }
+        return userinfo == nil ? "\(host):\(port)" : "\(userinfo!)@\(host):\(port)"
+    }
+
     private static var httpDefaultPort: Int = 80
     private static var httpsDefaultPort: Int = 443
 
