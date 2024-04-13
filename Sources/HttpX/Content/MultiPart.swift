@@ -22,9 +22,11 @@ public class MultiPart {
     /// Initializes a new instance of the MultiPart class.
     /// - Parameters:
     ///   - fromData: An array of tuples containing field names and their corresponding
-    ///          data. Defaults to an empty array.
+    ///          data. Defaults to an empty array. The corresponding data can by format
+    ///          as `[Data or String]`, `Data` or `String`
     ///   - fromFile: An array of tuples containing field names and their corresponding
     ///          file information. Defaults to an empty array.
+    ///   - encoding: The string encoding to use for encoding text. Defaults to `.utf8`.
     ///   - boundary: The boundary used to separate parts in the encoded form-data.
     ///          If not provided, a new UUID string will be used.
     ///
