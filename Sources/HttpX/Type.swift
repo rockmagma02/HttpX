@@ -22,6 +22,8 @@ public let kDefaultMaxRedirects = 20
 /// Default chunk size for reading data from a stream.
 public let kDefaultChunkSize = 1_024
 
+internal let kTimeoutCode = -1_001
+
 // MARK: - HTTPMethod
 
 // swiftlint:disable file_types_order
