@@ -291,24 +291,21 @@ public class SyncClient: BaseClient {
             return response!
         }
 
-        let response: Response
+        var response: Response
 
-        if let response = Mock.getResponse(request: request, mode: .sync, stream: stream.0, chunkSize: stream.1) {
-            if let error = response.error, response.URLResponse == nil {
-                throw error
-            }
-            return response
-        }
-
-        if stream.0 {
-            let chunkSize = stream.1 ?? kDefaultChunkSize
-            response = getStream(request: request, chunkSize: chunkSize)
+        if let mockResponse = Mock.getResponse(request: request, mode: .sync, stream: stream.0, chunkSize: stream.1) {
+            response = mockResponse
         } else {
-            response = getResponse(request: request)
-        }
+            if stream.0 {
+                let chunkSize = stream.1 ?? kDefaultChunkSize
+                response = getStream(request: request, chunkSize: chunkSize)
+            } else {
+                response = getResponse(request: request)
+            }
 
-        if let error = response.error {
-            response.error = buildError(error)
+            if let error = response.error {
+                response.error = buildError(error)
+            }
         }
 
         if let error = response.error, response.URLResponse == nil {
