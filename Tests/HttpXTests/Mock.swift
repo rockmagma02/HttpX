@@ -30,7 +30,7 @@ func mock() {
     let mock = Mock.getNowUsing()!
 
     mock.addRoute(networkLocation: network, path: "/delete", method: .delete) { request, _ in
-        let queries = URLComponents(url: request.url!, resolvingAgainstBaseURL: true)!.queryItems ?? []
+        let queries = URLComponents(url: request.url!, resolvingAgainstBaseURL: true)!.queryItems!
         var args = [String: String]()
         for query in queries {
             args[query.name] = query.value
@@ -62,7 +62,7 @@ func mock() {
     }
 
     mock.addRoute(networkLocation: network, path: "/patch", method: .patch) { request, _ in
-        let queries = URLComponents(url: request.url!, resolvingAgainstBaseURL: true)!.queryItems ?? []
+        let queries = URLComponents(url: request.url!, resolvingAgainstBaseURL: true)!.queryItems!
         var args = [String: String]()
         for query in queries {
             args[query.name] = query.value
@@ -78,7 +78,7 @@ func mock() {
     }
 
     mock.addRoute(networkLocation: network, path: "/post", method: .post) { request, _ in
-        let queries = URLComponents(url: request.url!, resolvingAgainstBaseURL: true)!.queryItems ?? []
+        let queries = URLComponents(url: request.url!, resolvingAgainstBaseURL: true)!.queryItems!
         var args = [String: String]()
         for query in queries {
             args[query.name] = query.value
@@ -94,7 +94,7 @@ func mock() {
     }
 
     mock.addRoute(networkLocation: network, path: "/put", method: .put) { request, _ in
-        let queries = URLComponents(url: request.url!, resolvingAgainstBaseURL: true)!.queryItems ?? []
+        let queries = URLComponents(url: request.url!, resolvingAgainstBaseURL: true)!.queryItems!
         var args = [String: String]()
         for query in queries {
             args[query.name] = query.value
