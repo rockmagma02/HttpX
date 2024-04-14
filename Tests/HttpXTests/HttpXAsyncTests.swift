@@ -20,6 +20,16 @@ import XCTest
 internal final class AsyncHttpMethodsTests: XCTestCase {
     // MARK: Internal
 
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
+
     internal func testDelete() async throws {
         let url = "\(baseURL)/delete"
         let response = try await HttpX.delete(url: URLType.string(url), params: QueryParamsType.array([("test", "ok")]))
@@ -79,6 +89,16 @@ internal final class AsyncHttpMethodsTests: XCTestCase {
 
 internal final class AsyncAuthTests: XCTestCase {
     // MARK: Internal
+
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
 
     internal func testBasicAuth() async throws {
         let user = "user"
@@ -152,6 +172,16 @@ internal final class AsyncAuthTests: XCTestCase {
 internal final class AsyncStatusCodeTests: XCTestCase {
     // MARK: Internal
 
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
+
     internal func testStatus() async throws {
         let status = 200
         let url = "\(statusURL)/\(status)"
@@ -173,6 +203,16 @@ internal final class AsyncStatusCodeTests: XCTestCase {
 
 internal final class AsyncRequestInspectionTests: XCTestCase {
     // MARK: Internal
+
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
 
     internal func testHeaders() async throws {
         let url = "\(inspectURL)/headers"
@@ -207,6 +247,16 @@ internal final class AsyncRequestInspectionTests: XCTestCase {
 
 internal final class AsyncResponseInspectionTests: XCTestCase {
     // MARK: Internal
+
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
 
     internal func testCache() async throws {
         // Sets a Cache-Control header for n seconds.
@@ -249,6 +299,16 @@ internal final class AsyncResponseInspectionTests: XCTestCase {
 
 internal final class AsyncResponseFormatsTests: XCTestCase {
     // MARK: Internal
+
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
 
     internal func testBrotli() async throws {
         let url = "\(formatURL)/brotli"
@@ -326,9 +386,7 @@ internal final class AsyncResponseFormatsTests: XCTestCase {
         XCTAssertEqual(response.URLResponse?.getHeaderValue(forHTTPHeaderField: "Content-Type"), "application/json")
 
         let data = response.data!
-        let jsonString = String(data: data, encoding: .utf8)!
-        XCTAssertTrue(jsonString.hasPrefix("{"))
-        XCTAssertTrue(jsonString.hasSuffix("}\n"))
+        XCTAssertNoThrow(try JSONSerialization.jsonObject(with: data, options: []))
     }
 
     internal func testRobots() async throws {
@@ -363,6 +421,16 @@ internal final class AsyncResponseFormatsTests: XCTestCase {
 
 internal final class AsyncDynamicDataTests: XCTestCase {
     // MARK: Internal
+
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
 
     internal func testBase64() async throws {
         let url = "\(dynamicURL)/base64/SFRUUEJJTiBpcyBhd2Vzb21l"
@@ -462,6 +530,16 @@ internal final class AsyncDynamicDataTests: XCTestCase {
 internal final class AsyncImagesTests: XCTestCase {
     // MARK: Internal
 
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
+
     internal func testImage() async throws {
         let url = "\(imagesURL)/image"
         let response = try await HttpX.get(url: URLType.string(url), headers: HeadersType.dictionary(["Accept": "image/webp"]))
@@ -539,6 +617,16 @@ internal final class AsyncImagesTests: XCTestCase {
 internal final class AsyncRedirectsTests: XCTestCase {
     // MARK: Internal
 
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
+
     internal func testAbsoluteRedirect() async throws {
         let url = "\(redirectsURL)/absolute-redirect/3"
         let response = try await HttpX.get(url: URLType.string(url), followRedirects: false)
@@ -573,4 +661,59 @@ internal final class AsyncRedirectsTests: XCTestCase {
     // MARK: Private
 
     private let redirectsURL: String = "https://httpbin.org"
+}
+
+// MARK: - AsyncOnlineTest
+
+internal final class AsyncOnlineTest: XCTestCase {
+    // MARK: Internal
+
+    internal func testStream() async throws {
+        let url = "\(baseURL)/stream-bytes/5000"
+        let response = try await HttpX.stream(method: .get, url: URLType.string(url))
+        XCTAssertEqual(response.URLResponse?.status.0, 200)
+
+        var dataLength: [Int] = []
+        for try await chunk in response.asyncStream! {
+            dataLength.append(chunk.count)
+        }
+        XCTAssertEqual(dataLength.count, 5)
+        XCTAssertEqual(dataLength, [1_024, 1_024, 1_024, 1_024, 904])
+    }
+
+    func testSendSingleRequest() async throws {
+        // Timeout
+        let client = AsyncClient()
+        let expectation = expectation(description: "timeout")
+        do {
+            _ = try await client.sendSingleRequest(
+                request: URLRequest(url: URL(string: "https://httpbin.org/delay/10")!, timeoutInterval: 1),
+                stream: (false, nil)
+            )
+        } catch {
+            XCTAssertEqual(error as? HttpXError, HttpXError.networkError(message: "", code: -1_001))
+            expectation.fulfill()
+        }
+        await fulfillment(of: [expectation], timeout: 5)
+    }
+
+    func testSendSingleRequestAsync() async throws {
+        // Timeout
+        let client = AsyncClient()
+        let expectation = expectation(description: "timeout")
+        do {
+            _ = try await client.sendSingleRequest(
+                request: URLRequest(url: URL(string: "https://httpbin.org/delay/10")!, timeoutInterval: 1),
+                stream: (true, nil)
+            )
+        } catch {
+            XCTAssertEqual(error as? HttpXError, HttpXError.networkError(message: "", code: -1_001))
+            expectation.fulfill()
+        }
+        await fulfillment(of: [expectation], timeout: 5)
+    }
+
+    // MARK: Private
+
+    private let baseURL: String = "https://httpbin.org"
 }

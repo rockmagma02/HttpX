@@ -293,16 +293,21 @@ public class AsyncClient: BaseClient {
             return response!
         }
 
-        let response: Response
-        if stream.0 {
-            let chunkSize = stream.1 ?? kDefaultChunkSize
-            response = await getStream(request: request, chunkSize: chunkSize)
-        } else {
-            response = await getResponse(request: request)
-        }
+        var response: Response
 
-        if let error = response.error {
-            response.error = buildError(error)
+        if let mockResponse = Mock.getResponse(request: request, mode: .async, stream: stream.0, chunkSize: stream.1) {
+            response = mockResponse
+        } else {
+            if stream.0 {
+                let chunkSize = stream.1 ?? kDefaultChunkSize
+                response = await getStream(request: request, chunkSize: chunkSize)
+            } else {
+                response = await getResponse(request: request)
+            }
+
+            if let error = response.error {
+                response.error = buildError(error)
+            }
         }
 
         if let error = response.error, response.URLResponse == nil {

@@ -22,6 +22,16 @@ final class SyncClientTests: XCTestCase {
         baseURL: URLType.string("https://httpbin.org/")
     )
 
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
+
     func testRequest() throws {
         class WrongAuth: BaseAuth {
             var needRequestBody = false
@@ -83,7 +93,7 @@ final class SyncClientTests: XCTestCase {
         client.setEventHooks(eventHooks)
 
         let response = try client.request(
-            method: .post,
+            method: .get,
             url: URLType.string("/get")
         )
         XCTAssertTrue(String(data: response.data!, encoding: .utf8)!.contains("response"))

@@ -22,6 +22,16 @@ final class AsyncClientTests: XCTestCase {
         baseURL: URLType.string("https://httpbin.org/")
     )
 
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
+
     func testRequest() async throws {
         class WrongAuth: BaseAuth {
             var needRequestBody = false
@@ -90,7 +100,7 @@ final class AsyncClientTests: XCTestCase {
 
         let response = try await client.request(
             method: .post,
-            url: URLType.string("/get")
+            url: URLType.string("/post")
         )
         XCTAssertTrue(String(data: response.data!, encoding: .utf8)!.contains("response"))
     }
@@ -104,6 +114,7 @@ final class AsyncClientTests: XCTestCase {
                 stream: (false, nil)
             )
         } catch {
+            XCTAssertEqual(error as? HttpXError, HttpXError.networkError(message: "", code: -1_001))
             expectation.fulfill()
         }
         await fulfillment(of: [expectation], timeout: 5)

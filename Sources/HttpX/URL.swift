@@ -41,6 +41,24 @@ public extension URL {
         self = components.url!
     }
 
+    /// Returns the network location of the URL.
+    ///
+    /// Usually in the format of `username:password@host:port`.
+    ///
+    /// - Parameter percentEncoded: Whether to percent-encode the output.
+    /// - Returns: The network location of the URL.
+    func networkLocation(percentEncoded: Bool = false) -> String {
+        let host = host(percentEncoded: percentEncoded) ?? ""
+        let port = port ?? Self.portOrDefault(self) ?? Self.httpDefaultPort
+        let user = user(percentEncoded: percentEncoded)
+        let password = password(percentEncoded: percentEncoded)
+        var userinfo: String?
+        if let user {
+            userinfo = password == nil ? user : "\(user):\(password!)"
+        }
+        return userinfo == nil ? "\(host):\(port)" : "\(userinfo!)@\(host):\(port)"
+    }
+
     private static var httpDefaultPort: Int = 80
     private static var httpsDefaultPort: Int = 443
 

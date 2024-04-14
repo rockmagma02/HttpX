@@ -24,6 +24,11 @@ public class Response: CustomStringConvertible {
 
     deinit {}
 
+    public init(URLResponse: URLResponse? = nil, data: Data? = nil) {
+        self.URLResponse = URLResponse
+        self.data = data
+    }
+
     // MARK: Public
 
     /// The data received in the response.

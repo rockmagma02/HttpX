@@ -20,6 +20,16 @@ import XCTest
 internal final class HttpMethodsTests: XCTestCase {
     // MARK: Internal
 
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
+
     internal func testDelete() throws {
         let url = "\(baseURL)/delete"
         let response = try HttpX.delete(url: URLType.string(url), params: QueryParamsType.array([("test", "ok")]))
@@ -79,6 +89,16 @@ internal final class HttpMethodsTests: XCTestCase {
 
 internal final class AuthTests: XCTestCase {
     // MARK: Internal
+
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
 
     internal func testBasicAuth() throws {
         let user = "user"
@@ -152,6 +172,16 @@ internal final class AuthTests: XCTestCase {
 internal final class StatusCodeTests: XCTestCase {
     // MARK: Internal
 
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
+
     internal func testStatus() throws {
         let status = 200
         let url = "\(statusURL)/\(status)"
@@ -173,6 +203,16 @@ internal final class StatusCodeTests: XCTestCase {
 
 internal final class RequestInspectionTests: XCTestCase {
     // MARK: Internal
+
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
 
     internal func testHeaders() throws {
         let url = "\(inspectURL)/headers"
@@ -207,6 +247,16 @@ internal final class RequestInspectionTests: XCTestCase {
 
 internal final class ResponseInspectionTests: XCTestCase {
     // MARK: Internal
+
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
 
     internal func testCache() throws {
         // Sets a Cache-Control header for n seconds.
@@ -249,6 +299,16 @@ internal final class ResponseInspectionTests: XCTestCase {
 
 internal final class ResponseFormatsTests: XCTestCase {
     // MARK: Internal
+
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
 
     internal func testBrotli() throws {
         let url = "\(formatURL)/brotli"
@@ -326,9 +386,7 @@ internal final class ResponseFormatsTests: XCTestCase {
         XCTAssertEqual(response.URLResponse?.getHeaderValue(forHTTPHeaderField: "Content-Type"), "application/json")
 
         let data = response.data!
-        let jsonString = String(data: data, encoding: .utf8)!
-        XCTAssertTrue(jsonString.hasPrefix("{"))
-        XCTAssertTrue(jsonString.hasSuffix("}\n"))
+        XCTAssertNoThrow(try JSONSerialization.jsonObject(with: data, options: []))
     }
 
     internal func testRobots() throws {
@@ -363,6 +421,16 @@ internal final class ResponseFormatsTests: XCTestCase {
 
 internal final class DynamicDataTests: XCTestCase {
     // MARK: Internal
+
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
 
     internal func testBase64() throws {
         let url = "\(dynamicURL)/base64/SFRUUEJJTiBpcyBhd2Vzb21l"
@@ -462,6 +530,16 @@ internal final class DynamicDataTests: XCTestCase {
 internal final class ImagesTests: XCTestCase {
     // MARK: Internal
 
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
+
     internal func testImage() throws {
         let url = "\(imagesURL)/image"
         let response = try HttpX.get(url: URLType.string(url), headers: HeadersType.dictionary(["Accept": "image/webp"]))
@@ -539,6 +617,16 @@ internal final class ImagesTests: XCTestCase {
 internal final class RedirectsTests: XCTestCase {
     // MARK: Internal
 
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
+
     internal func testAbsoluteRedirect() throws {
         let url = "\(redirectsURL)/absolute-redirect/3"
         let response = try HttpX.get(url: URLType.string(url), followRedirects: false)
@@ -573,4 +661,52 @@ internal final class RedirectsTests: XCTestCase {
     // MARK: Private
 
     private let redirectsURL: String = "https://httpbin.org"
+}
+
+// MARK: - OnlineTest
+
+internal final class OnlineTest: XCTestCase {
+    // MARK: Internal
+
+    internal func testRelativeRedirect() throws {
+        let url = "\(baseURL)/relative-redirect/2"
+        let response = try HttpX.get(url: URLType.string(url), headers: HeadersType.array([("test", "value")]), followRedirects: false)
+        XCTAssertEqual(response.URLResponse?.status.0, 302)
+        XCTAssertEqual(response.URLResponse?.getHeaderValue(forHTTPHeaderField: "Location"), "/relative-redirect/1")
+        XCTAssertEqual(response.nextRequest?.url?.absoluteString, "https://httpbin.org/relative-redirect/1")
+
+        let response2 = try HttpX.get(url: URLType.string(url), followRedirects: true)
+        XCTAssertEqual(response2.URLResponse?.status.0, 200)
+        XCTAssertEqual(response2.history.count, 2)
+    }
+
+    internal func testStream() throws {
+        let url = "\(baseURL)/stream-bytes/5000"
+        let response = try HttpX.stream(method: .get, url: URLType.string(url))
+        XCTAssertEqual(response.URLResponse?.status.0, 200)
+
+        var dataLength: [Int] = []
+        for chunk in response.syncStream! {
+            dataLength.append(chunk.count)
+        }
+        XCTAssertEqual(dataLength.count, 5)
+        XCTAssertEqual(dataLength, [1_024, 1_024, 1_024, 1_024, 904])
+    }
+
+    func testSendSingleRequest() throws {
+        // Timeout
+        let client = SyncClient()
+        XCTAssertThrowsError(
+            try client.sendSingleRequest(
+                request: URLRequest(url: URL(string: "https://httpbin.org/delay/10")!, timeoutInterval: 1),
+                stream: (true, nil)
+            )
+        ) { error in
+            XCTAssertEqual(error as? HttpXError, HttpXError.networkError(message: "", code: -1_001))
+        }
+    }
+
+    // MARK: Private
+
+    private let baseURL: String = "https://httpbin.org"
 }
