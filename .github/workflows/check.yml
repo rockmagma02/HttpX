@@ -25,9 +25,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: build
         run: swift build
-      # will be added after mocking is implemented
-      # - name: test
-      #   run: swift test
+      - name: test
+        run: swift test
       - name: format
         run: make swiftformat
       - name: pre-commit
