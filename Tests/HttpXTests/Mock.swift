@@ -30,7 +30,7 @@ func mock() {
     let mock = Mock.getNowUsing()!
 
     mock.addRoute(networkLocation: network, path: "/delete", method: .delete) { request, _ in
-        let queries = URLComponents(url: request.url!, resolvingAgainstBaseURL: true)!.queryItems ?? []
+        let queries = URLComponents(url: request.url!, resolvingAgainstBaseURL: true)!.queryItems!
         var args = [String: String]()
         for query in queries {
             args[query.name] = query.value
@@ -62,7 +62,7 @@ func mock() {
     }
 
     mock.addRoute(networkLocation: network, path: "/patch", method: .patch) { request, _ in
-        let queries = URLComponents(url: request.url!, resolvingAgainstBaseURL: true)!.queryItems ?? []
+        let queries = URLComponents(url: request.url!, resolvingAgainstBaseURL: true)!.queryItems!
         var args = [String: String]()
         for query in queries {
             args[query.name] = query.value
@@ -78,7 +78,7 @@ func mock() {
     }
 
     mock.addRoute(networkLocation: network, path: "/post", method: .post) { request, _ in
-        let queries = URLComponents(url: request.url!, resolvingAgainstBaseURL: true)!.queryItems ?? []
+        let queries = URLComponents(url: request.url!, resolvingAgainstBaseURL: true)!.queryItems!
         var args = [String: String]()
         for query in queries {
             args[query.name] = query.value
@@ -94,7 +94,7 @@ func mock() {
     }
 
     mock.addRoute(networkLocation: network, path: "/put", method: .put) { request, _ in
-        let queries = URLComponents(url: request.url!, resolvingAgainstBaseURL: true)!.queryItems ?? []
+        let queries = URLComponents(url: request.url!, resolvingAgainstBaseURL: true)!.queryItems!
         var args = [String: String]()
         for query in queries {
             args[query.name] = query.value
@@ -110,15 +110,6 @@ func mock() {
     }
 
     mock.addRoute(networkLocation: network, path: "/basic-auth") { request, paths in
-        guard paths.count == 2 else {
-            return MockResponse(
-                request: request,
-                data: nil,
-                statusCode: 404,
-                headers: [:]
-            )
-        }
-
         let username = paths[0]
         let password = paths[1]
 
@@ -141,15 +132,6 @@ func mock() {
     }
 
     mock.addRoute(networkLocation: network, path: "/hidden-basic-auth") { request, paths in
-        guard paths.count == 2 else {
-            return MockResponse(
-                request: request,
-                data: nil,
-                statusCode: 404,
-                headers: [:]
-            )
-        }
-
         let username = paths[0]
         let password = paths[1]
 
@@ -190,15 +172,6 @@ func mock() {
     }
 
     mock.addRoute(networkLocation: network, path: "digest-auth") { request, paths in
-        guard paths.count == 3 else {
-            return MockResponse(
-                request: request,
-                data: nil,
-                statusCode: 404,
-                headers: [:]
-            )
-        }
-
         func md5(_ string: String) -> String {
             let digest = Insecure.MD5.hash(data: string.data(using: .utf8)!)
             return digest.map { String(format: "%02hhx", $0) }.joined()
@@ -216,14 +189,7 @@ func mock() {
             )
 
             let a1 = [username, "me@kennethreitz.com", password].joined(separator: ":")
-            var path = request.url!.path(percentEncoded: true)
-            if path.isEmpty {
-                path = "/"
-            }
-            let query = request.url?.query(percentEncoded: true) ?? ""
-            if !query.isEmpty {
-                path += "?" + query
-            }
+            let path = request.url!.path(percentEncoded: true)
             let a2 = [request.httpMethod!, path].joined(separator: ":")
             let ha2 = md5(a2)
             let ncValue = authDict["nc"]!.replacingOccurrences(of: "\"", with: "")
@@ -258,15 +224,7 @@ func mock() {
     }
 
     mock.addRoute(networkLocation: network, path: "/status") { request, paths in
-        guard paths.count == 1 else {
-            return MockResponse(
-                request: request,
-                data: nil,
-                statusCode: 404,
-                headers: [:]
-            )
-        }
-        return MockResponse(
+        MockResponse(
             request: request,
             data: nil,
             statusCode: Int(paths[0])!,
@@ -275,7 +233,7 @@ func mock() {
     }
 
     mock.addRoute(networkLocation: network, path: "/headers") { request, _ in
-        let headers = request.allHTTPHeaderFields ?? [:]
+        let headers = request.allHTTPHeaderFields!
 
         var newHeaders = [String: String]()
         for (key, value) in headers {
@@ -294,7 +252,7 @@ func mock() {
     }
 
     mock.addRoute(networkLocation: network, path: "/user-agent") { request, _ in
-        let userAgent = request.value(forHTTPHeaderField: "User-Agent") ?? ""
+        let userAgent = request.value(forHTTPHeaderField: "User-Agent")!
 
         let json: [String: Any] = [
             "user-agent": userAgent,
@@ -309,16 +267,7 @@ func mock() {
     }
 
     mock.addRoute(networkLocation: network, path: "/cache") { request, paths in
-        guard paths.count == 1 else {
-            return MockResponse(
-                request: request,
-                data: nil,
-                statusCode: 404,
-                headers: [:]
-            )
-        }
-
-        return MockResponse(
+        MockResponse(
             request: request,
             data: nil,
             statusCode: 200,
@@ -327,15 +276,7 @@ func mock() {
     }
 
     mock.addRoute(networkLocation: network, path: "/etag") { request, paths in
-        guard paths.count == 1 else {
-            return MockResponse(
-                request: request,
-                data: nil,
-                statusCode: 404,
-                headers: [:]
-            )
-        }
-        return MockResponse(
+        MockResponse(
             request: request,
             data: nil,
             statusCode: 200,
@@ -347,12 +288,12 @@ func mock() {
         let components = URLComponents(url: request.url!, resolvingAgainstBaseURL: true)
         let headers = components?.queryItems?.reduce(into: [String: String]()) { result, item in
             result[item.name] = item.value
-        } ?? [:]
+        }
         return MockResponse(
             request: request,
             data: nil,
             statusCode: 200,
-            headers: headers
+            headers: headers!
         )
     }
 
@@ -360,12 +301,12 @@ func mock() {
         let components = URLComponents(url: request.url!, resolvingAgainstBaseURL: true)
         let headers = components?.queryItems?.reduce(into: [String: String]()) { result, item in
             result[item.name] = item.value
-        } ?? [:]
+        }
         return MockResponse(
             request: request,
             data: nil,
             statusCode: 200,
-            headers: headers
+            headers: headers!
         )
     }
 
@@ -469,15 +410,6 @@ func mock() {
     }
 
     mock.addRoute(networkLocation: network, path: "/base64") { request, paths in
-        guard paths.count == 1 else {
-            return MockResponse(
-                request: request,
-                data: nil,
-                statusCode: 404,
-                headers: [:]
-            )
-        }
-
         let base64 = paths[0]
         return MockResponse(
             request: request,
@@ -488,15 +420,6 @@ func mock() {
     }
 
     mock.addRoute(networkLocation: network, path: "/bytes") { request, paths in
-        guard paths.count == 1 else {
-            return MockResponse(
-                request: request,
-                data: nil,
-                statusCode: 404,
-                headers: [:]
-            )
-        }
-
         let length = Int(paths[0])!
         return MockResponse(
             request: request,
@@ -507,15 +430,6 @@ func mock() {
     }
 
     mock.addRoute(networkLocation: network, path: "/delay") { request, paths in
-        guard paths.count == 1 else {
-            return MockResponse(
-                request: request,
-                data: nil,
-                statusCode: 404,
-                headers: [:]
-            )
-        }
-
         if let times = Int(paths[0]) {
             sleep(UInt32(times))
         }
@@ -530,9 +444,9 @@ func mock() {
     mock.addRoute(networkLocation: network, path: "/drip") { request, _ in
         let components = URLComponents(url: request.url!, resolvingAgainstBaseURL: true)!
         let queryItems = components.queryItems!
-        let numbytes = Int(queryItems.first(where: { $0.name == "numbytes" })?.value ?? "10")!
-        let duration = Int(queryItems.first(where: { $0.name == "duration" })?.value ?? "2")!
-        let delay = Int(queryItems.first(where: { $0.name == "delay" })?.value ?? "0")!
+        let numbytes = Int(queryItems.first(where: { $0.name == "numbytes" })!.value!)!
+        let duration = Int(queryItems.first(where: { $0.name == "duration" })!.value!)!
+        let delay = Int(queryItems.first(where: { $0.name == "delay" })!.value!)!
 
         sleep(UInt32(delay))
 
@@ -640,24 +554,7 @@ func mock() {
     }
 
     mock.addRoute(networkLocation: network, path: "/absolute-redirect") { request, paths in
-        guard paths.count == 1 else {
-            return MockResponse(
-                request: request,
-                data: nil,
-                statusCode: 404,
-                headers: [:]
-            )
-        }
-
         let nums = Int(paths[0])!
-        if nums <= 1 {
-            return MockResponse(
-                request: request,
-                data: nil,
-                statusCode: 302,
-                headers: ["Location": "http://httpbin.org/get"]
-            )
-        }
         return MockResponse(
             request: request,
             data: nil,
@@ -667,15 +564,6 @@ func mock() {
     }
 
     mock.addRoute(networkLocation: "httpbin.org:80", path: "/absolute-redirect") { request, paths in
-        guard paths.count == 1 else {
-            return MockResponse(
-                request: request,
-                data: nil,
-                statusCode: 404,
-                headers: [:]
-            )
-        }
-
         let nums = Int(paths[0])!
         if nums <= 1 {
             return MockResponse(
@@ -694,12 +582,7 @@ func mock() {
     }
 
     mock.addRoute(networkLocation: "httpbin.org:80", path: "/get", method: .get) { request, _ in
-        let queries = URLComponents(url: request.url!, resolvingAgainstBaseURL: true)!.queryItems ?? []
-        var args = [String: String]()
-        for query in queries {
-            args[query.name] = query.value
-        }
-        let results: [String: Any] = ["args": args]
+        let results: [String: Any] = ["args": []]
         let body = try! JSONSerialization.data(withJSONObject: results, options: [])
         return MockResponse(
             request: request,
@@ -721,15 +604,6 @@ func mock() {
     }
 
     mock.addRoute(networkLocation: network, path: "/relative-redirect") { request, paths in
-        guard paths.count == 1 else {
-            return MockResponse(
-                request: request,
-                data: nil,
-                statusCode: 404,
-                headers: [:]
-            )
-        }
-
         let nums = Int(paths[0])!
         if nums <= 1 {
             return MockResponse(

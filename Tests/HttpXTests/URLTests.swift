@@ -72,4 +72,63 @@ class URLExtensionsTests: XCTestCase {
         let differentHostURL = URL(string: "https://www.anotherexample.com")!
         XCTAssertFalse(URL.isHttpsRedirect(httpURL, location: differentHostURL))
     }
+
+    func testNetworkLocationWithDefaultPort() {
+        let url = URL(string: "http://example.com")!
+        XCTAssertEqual(url.networkLocation(), "example.com:80")
+    }
+
+    func testNetworkLocationWithCustomPort() {
+        let url = URL(string: "http://example.com:8080")!
+        XCTAssertEqual(url.networkLocation(), "example.com:8080")
+    }
+
+    func testNetworkLocationWithUserInfo() {
+        var components = URLComponents()
+        components.scheme = "http"
+        components.host = "example.com"
+        components.user = "user"
+        components.password = "password"
+        let url = components.url!
+        XCTAssertEqual(url.networkLocation(), "user:password@example.com:80")
+    }
+
+    func testNetworkLocationPercentEncoded() {
+        var components = URLComponents()
+        components.scheme = "http"
+        components.host = "example.com"
+        components.user = "user name"
+        components.password = "pass/word"
+        let url = components.url!
+        XCTAssertEqual(url.networkLocation(percentEncoded: true), "user%20name:pass%2Fword@example.com:80")
+    }
+
+    func testNetworkLocationWithHttpsDefaultPort() {
+        let url = URL(string: "https://example.com")!
+        XCTAssertEqual(url.networkLocation(), "example.com:443")
+    }
+
+    func testNetworkLocationWithoutHost() {
+        var components = URLComponents()
+        components.scheme = "http"
+        let url = components.url!
+        XCTAssertEqual(url.networkLocation(), ":80")
+    }
+
+    func testWeirdScheme() {
+        var components = URLComponents()
+        components.scheme = "weird"
+        components.host = "example.com"
+        let url = components.url!
+        XCTAssertEqual(url.networkLocation(), "example.com:80")
+    }
+
+    func testNetworkLocationWithoutPassword() {
+        var components = URLComponents()
+        components.scheme = "http"
+        components.host = "example.com"
+        components.user = "user"
+        let url = components.url!
+        XCTAssertEqual(url.networkLocation(), "user@example.com:80")
+    }
 }
