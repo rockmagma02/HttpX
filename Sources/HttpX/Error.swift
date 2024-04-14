@@ -55,6 +55,8 @@ public enum StreamError: Error, Equatable {
 public enum ContentError: Error {
     /// The FIle URL cat't be found.
     case pathNotFound
+    /// The Data type is not supported.
+    case unsupportedType
 }
 
 // MARK: - HttpXError

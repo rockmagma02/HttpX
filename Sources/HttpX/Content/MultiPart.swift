@@ -275,6 +275,8 @@ public class MultiPart {
                 fields.append(DataField(name: name, value: value, encoding: encoding))
             } else if let value = value as? Data {
                 fields.append(DataField(name: name, value: value))
+            } else {
+                throw ContentError.unsupportedType
             }
         }
 
