@@ -294,6 +294,14 @@ public class AsyncClient: BaseClient {
         }
 
         let response: Response
+
+        if let response = Mock.getResponse(request: request) {
+            if let error = response.error, response.URLResponse == nil {
+                throw error
+            }
+            return response
+        }
+
         if stream.0 {
             let chunkSize = stream.1 ?? kDefaultChunkSize
             response = await getStream(request: request, chunkSize: chunkSize)
