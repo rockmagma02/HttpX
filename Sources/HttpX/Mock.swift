@@ -45,6 +45,7 @@ private class Route {
         }
         if path.isEmpty {
             functions[method] = function
+            return
         }
 
         let parts = path.split(separator: "/", maxSplits: 1)
@@ -65,13 +66,14 @@ private class Route {
         }
         if path.isEmpty {
             functions[method] = nil
-        }
-        let parts = path.split(separator: "/", maxSplits: 1)
-        let first = String(parts.first!)
-        let rest = parts.count > 1 ? String(parts.last!) : "/"
-        if let route = nextLevelRoutes[first] {
-            if route.removeRoute(path: rest, method: method) {
-                nextLevelRoutes.removeValue(forKey: first)
+        } else {
+            let parts = path.split(separator: "/", maxSplits: 1)
+            let first = String(parts.first!)
+            let rest = parts.count > 1 ? String(parts.last!) : "/"
+            if let route = nextLevelRoutes[first] {
+                if route.removeRoute(path: rest, method: method) {
+                    nextLevelRoutes.removeValue(forKey: first)
+                }
             }
         }
         return functions.isEmpty && nextLevelRoutes.isEmpty
@@ -88,22 +90,23 @@ private class Route {
         // The path exactly matches the current route
         if path.isEmpty {
             function = functions[method]
-        }
-        let parts = path.split(separator: "/", maxSplits: 1)
-        let first = String(parts.first!)
-        let rest = parts.count > 1 ? String(parts.last!) : "/"
+        } else {
+            let parts = path.split(separator: "/", maxSplits: 1)
+            let first = String(parts.first!)
+            let rest = parts.count > 1 ? String(parts.last!) : "/"
 
-        if // next route is findable, go deeper
-            let route = nextLevelRoutes[first],
-            let nextFunction = route.getFunction(path: rest, method: method)
-        { // swiftlint:disable:this opening_brace
-            return nextFunction
-        }
+            if // next route is findable, go deeper
+                let route = nextLevelRoutes[first],
+                let nextFunction = route.getFunction(path: rest, method: method)
+            { // swiftlint:disable:this opening_brace
+                return nextFunction
+            }
 
-        // function is not in deeper routes, get function from current route,
-        // and pass the remain path
-        function = functions[method]
-        remainPath = path.components(separatedBy: "/")
+            // function is not in deeper routes, get function from current route,
+            // and pass the remain path
+            function = functions[method]
+            remainPath = path.components(separatedBy: "/")
+        }
 
         if let function {
             func partial(request: URLRequest) -> Response {
@@ -117,12 +120,17 @@ private class Route {
     func toJson() -> [String: Any] {
         var json = [String: Any]()
         json["path"] = path
-        json["functions"] = functions.keys.map(\.rawValue)
-        var next = [Any]()
-        for (key, value) in nextLevelRoutes {
-            next.append(value.toJson())
+        let functions = functions.keys.map(\.rawValue)
+        if !functions.isEmpty {
+            json["functions"] = functions
         }
-        json["next"] = next
+        var next = [String: Any]()
+        for (key, value) in nextLevelRoutes {
+            next[key] = value.toJson()
+        }
+        if !next.isEmpty {
+            json["next"] = next
+        }
         return json
     }
 }
@@ -178,7 +186,7 @@ public class Mock {
         method: HTTPMethod = .get,
         function: @escaping (URLRequest, [Path]) -> Response
     ) {
-        var path = NSString(string: path).standardizingPath
+        let path = NSString(string: path).standardizingPath
 
         if !routeDict.contains(where: { $0.key == networkLocation }) {
             routeDict[networkLocation] = Route(networkLocation)
@@ -198,8 +206,8 @@ public class Mock {
         path: Path = "/",
         method: HTTPMethod = .get
     ) {
-        var path = NSString(string: path).standardizingPath
-        if var route = routeDict[networkLocation] {
+        let path = NSString(string: path).standardizingPath
+        if let route = routeDict[networkLocation] {
             if route.removeRoute(path: path, method: method) {
                 routeDict.removeValue(forKey: networkLocation)
             }
