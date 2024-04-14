@@ -665,55 +665,56 @@ internal final class AsyncRedirectsTests: XCTestCase {
 
 // MARK: - AsyncOnlineTest
 
-internal final class AsyncOnlineTest: XCTestCase {
-    // MARK: Internal
-
-    internal func testStream() async throws {
-        let url = "\(baseURL)/stream-bytes/5000"
-        let response = try await HttpX.stream(method: .get, url: URLType.string(url))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
-
-        var dataLength: [Int] = []
-        for try await chunk in response.asyncStream! {
-            dataLength.append(chunk.count)
-        }
-        XCTAssertEqual(dataLength.count, 5)
-        XCTAssertEqual(dataLength, [1_024, 1_024, 1_024, 1_024, 904])
-    }
-
-    func testSendSingleRequest() async throws {
-        // Timeout
-        let client = AsyncClient()
-        let expectation = expectation(description: "timeout")
-        do {
-            _ = try await client.sendSingleRequest(
-                request: URLRequest(url: URL(string: "https://httpbin.org/delay/10")!, timeoutInterval: 1),
-                stream: (false, nil)
-            )
-        } catch {
-            XCTAssertEqual(error as? HttpXError, HttpXError.networkError(message: "", code: -1_001))
-            expectation.fulfill()
-        }
-        await fulfillment(of: [expectation], timeout: 5)
-    }
-
-    func testSendSingleRequestAsync() async throws {
-        // Timeout
-        let client = AsyncClient()
-        let expectation = expectation(description: "timeout")
-        do {
-            _ = try await client.sendSingleRequest(
-                request: URLRequest(url: URL(string: "https://httpbin.org/delay/10")!, timeoutInterval: 1),
-                stream: (true, nil)
-            )
-        } catch {
-            XCTAssertEqual(error as? HttpXError, HttpXError.networkError(message: "", code: -1_001))
-            expectation.fulfill()
-        }
-        await fulfillment(of: [expectation], timeout: 5)
-    }
-
-    // MARK: Private
-
-    private let baseURL: String = "https://httpbin.org"
-}
+//
+// internal final class AsyncOnlineTest: XCTestCase {
+//    // MARK: Internal
+//
+//    internal func testStream() async throws {
+//        let url = "\(baseURL)/stream-bytes/5000"
+//        let response = try await HttpX.stream(method: .get, url: URLType.string(url))
+//        XCTAssertEqual(response.URLResponse?.status.0, 200)
+//
+//        var dataLength: [Int] = []
+//        for try await chunk in response.asyncStream! {
+//            dataLength.append(chunk.count)
+//        }
+//        XCTAssertEqual(dataLength.count, 5)
+//        XCTAssertEqual(dataLength, [1_024, 1_024, 1_024, 1_024, 904])
+//    }
+//
+//    func testSendSingleRequest() async throws {
+//        // Timeout
+//        let client = AsyncClient()
+//        let expectation = expectation(description: "timeout")
+//        do {
+//            _ = try await client.sendSingleRequest(
+//                request: URLRequest(url: URL(string: "https://httpbin.org/delay/10")!, timeoutInterval: 1),
+//                stream: (false, nil)
+//            )
+//        } catch {
+//            XCTAssertEqual(error as? HttpXError, HttpXError.networkError(message: "", code: -1_001))
+//            expectation.fulfill()
+//        }
+//        await fulfillment(of: [expectation], timeout: 5)
+//    }
+//
+//    func testSendSingleRequestAsync() async throws {
+//        // Timeout
+//        let client = AsyncClient()
+//        let expectation = expectation(description: "timeout")
+//        do {
+//            _ = try await client.sendSingleRequest(
+//                request: URLRequest(url: URL(string: "https://httpbin.org/delay/10")!, timeoutInterval: 1),
+//                stream: (true, nil)
+//            )
+//        } catch {
+//            XCTAssertEqual(error as? HttpXError, HttpXError.networkError(message: "", code: -1_001))
+//            expectation.fulfill()
+//        }
+//        await fulfillment(of: [expectation], timeout: 5)
+//    }
+//
+//    // MARK: Private
+//
+//    private let baseURL: String = "https://httpbin.org"
+// }

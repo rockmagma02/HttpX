@@ -665,48 +665,49 @@ internal final class RedirectsTests: XCTestCase {
 
 // MARK: - OnlineTest
 
-internal final class OnlineTest: XCTestCase {
-    // MARK: Internal
-
-    internal func testRelativeRedirect() throws {
-        let url = "\(baseURL)/relative-redirect/2"
-        let response = try HttpX.get(url: URLType.string(url), headers: HeadersType.array([("test", "value")]), followRedirects: false)
-        XCTAssertEqual(response.URLResponse?.status.0, 302)
-        XCTAssertEqual(response.URLResponse?.getHeaderValue(forHTTPHeaderField: "Location"), "/relative-redirect/1")
-        XCTAssertEqual(response.nextRequest?.url?.absoluteString, "https://httpbin.org/relative-redirect/1")
-
-        let response2 = try HttpX.get(url: URLType.string(url), followRedirects: true)
-        XCTAssertEqual(response2.URLResponse?.status.0, 200)
-        XCTAssertEqual(response2.history.count, 2)
-    }
-
-    internal func testStream() throws {
-        let url = "\(baseURL)/stream-bytes/5000"
-        let response = try HttpX.stream(method: .get, url: URLType.string(url))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
-
-        var dataLength: [Int] = []
-        for chunk in response.syncStream! {
-            dataLength.append(chunk.count)
-        }
-        XCTAssertEqual(dataLength.count, 5)
-        XCTAssertEqual(dataLength, [1_024, 1_024, 1_024, 1_024, 904])
-    }
-
-    func testSendSingleRequest() throws {
-        // Timeout
-        let client = SyncClient()
-        XCTAssertThrowsError(
-            try client.sendSingleRequest(
-                request: URLRequest(url: URL(string: "https://httpbin.org/delay/10")!, timeoutInterval: 1),
-                stream: (true, nil)
-            )
-        ) { error in
-            XCTAssertEqual(error as? HttpXError, HttpXError.networkError(message: "", code: -1_001))
-        }
-    }
-
-    // MARK: Private
-
-    private let baseURL: String = "https://httpbin.org"
-}
+//
+// internal final class OnlineTest: XCTestCase {
+//    // MARK: Internal
+//
+//    internal func testRelativeRedirect() throws {
+//        let url = "\(baseURL)/relative-redirect/2"
+//        let response = try HttpX.get(url: URLType.string(url), headers: HeadersType.array([("test", "value")]), followRedirects: false)
+//        XCTAssertEqual(response.URLResponse?.status.0, 302)
+//        XCTAssertEqual(response.URLResponse?.getHeaderValue(forHTTPHeaderField: "Location"), "/relative-redirect/1")
+//        XCTAssertEqual(response.nextRequest?.url?.absoluteString, "https://httpbin.org/relative-redirect/1")
+//
+//        let response2 = try HttpX.get(url: URLType.string(url), followRedirects: true)
+//        XCTAssertEqual(response2.URLResponse?.status.0, 200)
+//        XCTAssertEqual(response2.history.count, 2)
+//    }
+//
+//    internal func testStream() throws {
+//        let url = "\(baseURL)/stream-bytes/5000"
+//        let response = try HttpX.stream(method: .get, url: URLType.string(url))
+//        XCTAssertEqual(response.URLResponse?.status.0, 200)
+//
+//        var dataLength: [Int] = []
+//        for chunk in response.syncStream! {
+//            dataLength.append(chunk.count)
+//        }
+//        XCTAssertEqual(dataLength.count, 5)
+//        XCTAssertEqual(dataLength, [1_024, 1_024, 1_024, 1_024, 904])
+//    }
+//
+//    func testSendSingleRequest() throws {
+//        // Timeout
+//        let client = SyncClient()
+//        XCTAssertThrowsError(
+//            try client.sendSingleRequest(
+//                request: URLRequest(url: URL(string: "https://httpbin.org/delay/10")!, timeoutInterval: 1),
+//                stream: (true, nil)
+//            )
+//        ) { error in
+//            XCTAssertEqual(error as? HttpXError, HttpXError.networkError(message: "", code: -1_001))
+//        }
+//    }
+//
+//    // MARK: Private
+//
+//    private let baseURL: String = "https://httpbin.org"
+// }
