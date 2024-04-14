@@ -33,7 +33,10 @@ let package = Package(
             name: "HttpXTests",
             dependencies: ["HttpX"],
             resources: [
-                .process("testImage.png"),
+                .process("Resources/testImage.png"),
+                .process("Resources/testImage.jpg"),
+                .process("Resources/testImage.webp"),
+                .process("Resources/testImage.svg"),
             ]
         ),
     ]
