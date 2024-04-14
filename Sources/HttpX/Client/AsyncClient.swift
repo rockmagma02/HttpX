@@ -295,7 +295,7 @@ public class AsyncClient: BaseClient {
 
         let response: Response
 
-        if let response = Mock.getResponse(request: request) {
+        if let response = Mock.getResponse(request: request, mode: .async, stream: stream.0, chunkSize: stream.1) {
             if let error = response.error, response.URLResponse == nil {
                 throw error
             }
