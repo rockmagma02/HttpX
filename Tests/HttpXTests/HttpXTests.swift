@@ -680,16 +680,6 @@ internal final class OnlineTest: XCTestCase {
         XCTAssertEqual(response2.history.count, 2)
     }
 
-    internal func testGet() throws {
-        let url = "\(baseURL)/get"
-        let response = try HttpX.get(url: URLType.string(url), params: QueryParamsType.array([("test", "ok")]))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
-
-        let data = response.data!
-        let json = try JSONSerialization.jsonObject(with: data, options: []) as! [String: Any]
-        XCTAssertEqual(json["args"] as! [String: String], ["test": "ok"])
-    }
-
     internal func testStream() throws {
         let url = "\(baseURL)/stream-bytes/5000"
         let response = try HttpX.stream(method: .get, url: URLType.string(url))

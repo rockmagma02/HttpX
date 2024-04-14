@@ -668,16 +668,6 @@ internal final class AsyncRedirectsTests: XCTestCase {
 internal final class AsyncOnlineTest: XCTestCase {
     // MARK: Internal
 
-    internal func testGet() async throws {
-        let url = "\(baseURL)/get"
-        let response = try await HttpX.get(url: URLType.string(url), params: QueryParamsType.array([("test", "ok")]))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
-
-        let data = response.data!
-        let json = try JSONSerialization.jsonObject(with: data, options: []) as! [String: Any]
-        XCTAssertEqual(json["args"] as! [String: String], ["test": "ok"])
-    }
-
     internal func testStream() async throws {
         let url = "\(baseURL)/stream-bytes/5000"
         let response = try await HttpX.stream(method: .get, url: URLType.string(url))

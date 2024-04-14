@@ -93,7 +93,7 @@ final class SyncClientTests: XCTestCase {
         client.setEventHooks(eventHooks)
 
         let response = try client.request(
-            method: .post,
+            method: .get,
             url: URLType.string("/get")
         )
         XCTAssertTrue(String(data: response.data!, encoding: .utf8)!.contains("response"))
