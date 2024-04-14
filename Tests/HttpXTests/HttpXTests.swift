@@ -20,6 +20,16 @@ import XCTest
 internal final class HttpMethodsTests: XCTestCase {
     // MARK: Internal
 
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
+
     internal func testDelete() throws {
         let url = "\(baseURL)/delete"
         let response = try HttpX.delete(url: URLType.string(url), params: QueryParamsType.array([("test", "ok")]))
@@ -79,6 +89,16 @@ internal final class HttpMethodsTests: XCTestCase {
 
 internal final class AuthTests: XCTestCase {
     // MARK: Internal
+
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
 
     internal func testBasicAuth() throws {
         let user = "user"
@@ -152,6 +172,16 @@ internal final class AuthTests: XCTestCase {
 internal final class StatusCodeTests: XCTestCase {
     // MARK: Internal
 
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
+
     internal func testStatus() throws {
         let status = 200
         let url = "\(statusURL)/\(status)"
@@ -173,6 +203,16 @@ internal final class StatusCodeTests: XCTestCase {
 
 internal final class RequestInspectionTests: XCTestCase {
     // MARK: Internal
+
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
 
     internal func testHeaders() throws {
         let url = "\(inspectURL)/headers"
@@ -207,6 +247,16 @@ internal final class RequestInspectionTests: XCTestCase {
 
 internal final class ResponseInspectionTests: XCTestCase {
     // MARK: Internal
+
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
 
     internal func testCache() throws {
         // Sets a Cache-Control header for n seconds.
@@ -249,6 +299,16 @@ internal final class ResponseInspectionTests: XCTestCase {
 
 internal final class ResponseFormatsTests: XCTestCase {
     // MARK: Internal
+
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
 
     internal func testBrotli() throws {
         let url = "\(formatURL)/brotli"
@@ -326,9 +386,7 @@ internal final class ResponseFormatsTests: XCTestCase {
         XCTAssertEqual(response.URLResponse?.getHeaderValue(forHTTPHeaderField: "Content-Type"), "application/json")
 
         let data = response.data!
-        let jsonString = String(data: data, encoding: .utf8)!
-        XCTAssertTrue(jsonString.hasPrefix("{"))
-        XCTAssertTrue(jsonString.hasSuffix("}\n"))
+        XCTAssertNoThrow(try JSONSerialization.jsonObject(with: data, options: []))
     }
 
     internal func testRobots() throws {
@@ -363,6 +421,16 @@ internal final class ResponseFormatsTests: XCTestCase {
 
 internal final class DynamicDataTests: XCTestCase {
     // MARK: Internal
+
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
 
     internal func testBase64() throws {
         let url = "\(dynamicURL)/base64/SFRUUEJJTiBpcyBhd2Vzb21l"
@@ -462,6 +530,16 @@ internal final class DynamicDataTests: XCTestCase {
 internal final class ImagesTests: XCTestCase {
     // MARK: Internal
 
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
+
     internal func testImage() throws {
         let url = "\(imagesURL)/image"
         let response = try HttpX.get(url: URLType.string(url), headers: HeadersType.dictionary(["Accept": "image/webp"]))
@@ -538,6 +616,16 @@ internal final class ImagesTests: XCTestCase {
 
 internal final class RedirectsTests: XCTestCase {
     // MARK: Internal
+
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
 
     internal func testAbsoluteRedirect() throws {
         let url = "\(redirectsURL)/absolute-redirect/3"

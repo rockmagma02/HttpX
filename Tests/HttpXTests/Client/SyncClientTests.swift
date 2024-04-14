@@ -22,6 +22,16 @@ final class SyncClientTests: XCTestCase {
         baseURL: URLType.string("https://httpbin.org/")
     )
 
+    override class func tearDown() {
+        super.tearDown()
+        mockStop()
+    }
+
+    override func setUp() {
+        super.setUp()
+        mock()
+    }
+
     func testRequest() throws {
         class WrongAuth: BaseAuth {
             var needRequestBody = false
