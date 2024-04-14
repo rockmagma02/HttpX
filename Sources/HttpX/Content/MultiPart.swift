@@ -22,20 +22,23 @@ public class MultiPart {
     /// Initializes a new instance of the MultiPart class.
     /// - Parameters:
     ///   - fromData: An array of tuples containing field names and their corresponding
-    ///          data. Defaults to an empty array.
+    ///          data. Defaults to an empty array. The corresponding data can by format
+    ///          as `[Data or String]`, `Data` or `String`
     ///   - fromFile: An array of tuples containing field names and their corresponding
     ///          file information. Defaults to an empty array.
+    ///   - encoding: The string encoding to use for encoding text. Defaults to `.utf8`.
     ///   - boundary: The boundary used to separate parts in the encoded form-data.
     ///          If not provided, a new UUID string will be used.
     ///
     /// - Throws: An error if the fields cannot be extracted from the provided data.
     public init(
-        fromData data: [(String, Data)] = [],
+        fromData data: [(String, Any)] = [],
         fromFile files: [(String, File)] = [],
+        encoding: String.Encoding = .utf8,
         boundary: Data? = nil
     ) throws {
         self.boundary = boundary ?? UUID().uuidString.data(using: .utf8)!
-        fields = try Self.getFields(fromData: data, fromFile: files)
+        fields = try Self.getFields(fromData: data, fromFile: files, encoding: encoding)
     }
 
     deinit {}
@@ -116,6 +119,11 @@ public class MultiPart {
         init(name: String, value: Data) {
             self.name = name
             self.value = value
+        }
+
+        convenience init(name: String, value: String, encoding: String.Encoding) {
+            let data = value.data(using: encoding)!
+            self.init(name: name, value: data)
         }
 
         deinit {}
@@ -249,13 +257,29 @@ public class MultiPart {
     }
 
     private static func getFields(
-        fromData data: [(String, Data)],
-        fromFile file: [(String, File)]
+        fromData data: [(String, Any)],
+        fromFile file: [(String, File)],
+        encoding: String.Encoding
     ) throws -> [Field] {
         var fields: [Field] = []
         for (name, value) in data {
-            fields.append(DataField(name: name, value: value))
+            if let value = value as? [Any] {
+                for item in value {
+                    if let item = item as? String {
+                        fields.append(DataField(name: name, value: item, encoding: encoding))
+                    } else if let item = item as? Data {
+                        fields.append(DataField(name: name, value: item))
+                    }
+                }
+            } else if let value = value as? String {
+                fields.append(DataField(name: name, value: value, encoding: encoding))
+            } else if let value = value as? Data {
+                fields.append(DataField(name: name, value: value))
+            } else {
+                throw ContentError.unsupportedType
+            }
         }
+
         for (name, file) in file {
             try fields.append(FileField(name: name, file: file))
         }
