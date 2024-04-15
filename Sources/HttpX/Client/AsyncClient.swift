@@ -160,11 +160,20 @@ public class AsyncClient: BaseClient {
         )
     }
 
-    // MARK: Internal
-
-    internal var delegate: AsyncStreamDelegate? // swiftlint:disable:this weak_delegate
-
-    internal func sendRequest(
+    /// Sends a network request, optionally streaming the response and handling authentication and redirects.
+    ///
+    /// - Parameters:
+    ///   - request: The `URLRequest` to be sent.
+    ///   - stream: A tuple indicating whether the response should be streamed and the chunk size for streaming.
+    ///             Defaults to `(false, nil)`, meaning no streaming.
+    ///   - auth: The authentication strategy to use. If `nil`, the client's default authentication will be used.
+    ///   - followRedirects: A Boolean value indicating whether the client should follow HTTP redirects.
+    ///                      If `nil`, the client's default setting will be used.
+    ///
+    /// - Returns: A `Response` object containing the response data.
+    ///
+    /// - Throws: An error if the request fails.
+    public func sendRequest(
         request: URLRequest,
         stream: (Bool, Int?) = (false, nil),
         auth: AuthType? = nil,
@@ -181,6 +190,10 @@ public class AsyncClient: BaseClient {
             history: []
         )
     }
+
+    // MARK: Internal
+
+    internal var delegate: AsyncStreamDelegate? // swiftlint:disable:this weak_delegate
 
     internal func sendHandlingAuth(
         request: URLRequest,
