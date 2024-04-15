@@ -161,11 +161,24 @@ public class SyncClient: BaseClient {
         )
     }
 
-    // MARK: Internal
-
-    internal var delegate: SyncStreamDelegate? // swiftlint:disable:this weak_delegate
-
-    internal func sendRequest(
+    /// Sends a network request with the given parameters, handling authentication and redirects as specified.
+    ///
+    /// This method sends a network request based on the provided `URLRequest` object. It supports streaming
+    /// of the response if required. Authentication and redirect following can be customized via the method parameters.
+    ///
+    /// - Parameters:
+    ///   - request: The `URLRequest` to be sent.
+    ///   - stream: A tuple indicating whether the response should be streamed (`true`)
+    ///             and the chunk size for streaming. The default is `(false, nil)`, indicating no streaming.
+    ///   - auth: An optional `AuthType` to be used for the request. If `nil`,
+    ///             the client's default authentication will be used.
+    ///   - followRedirects: An optional Boolean indicating whether redirects should be followed. If `nil`, the client's
+    ///                      default setting will be used.
+    ///
+    /// - Returns: A `Response` object containing the response data.
+    ///
+    /// - Throws: An error if the request fails, including network errors or authentication failures.
+    public func sendRequest(
         request: URLRequest,
         stream: (Bool, Int?) = (false, nil),
         auth: AuthType? = nil,
@@ -182,6 +195,10 @@ public class SyncClient: BaseClient {
             history: []
         )
     }
+
+    // MARK: Internal
+
+    internal var delegate: SyncStreamDelegate? // swiftlint:disable:this weak_delegate
 
     internal func sendHandlingAuth(
         request: URLRequest,

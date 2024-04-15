@@ -170,6 +170,49 @@ public class BaseClient {
         defaultEncodingPrivate = encoding
     }
 
+    /// Builds a URLRequest with the specified parameters.
+    ///
+    /// This method constructs a URLRequest using the provided parameters. If a parameter is not provided,
+    /// the default value from the `BaseClient` instance is used. The URL is constructed or merged based on
+    /// the `baseURL` of the client and the provided `url` parameter. Headers and query parameters are merged
+    /// with the default values. The body content is encoded using the specified or default encoding.
+    ///
+    /// - Parameters:
+    ///   - method: The HTTP method for the request.
+    ///   - url: The URL or URLType for the request. If nil, the `baseURL` of the client is used.
+    ///   - content: The content to be sent with the request. If nil, no content is sent.
+    ///   - params: The query parameters to be appended to the URL. If nil, default parameters are used.
+    ///   - headers: The headers to be added to the request. If nil, default headers are used.
+    ///   - timeout: The timeout interval for the request. If nil, the default timeout is used.
+    /// - Returns: A configured URLRequest instance.
+    /// - Throws: `HttpXError.invalidURL` if the URL is invalid or cannot be constructed.
+    public func buildRequest(
+        method: HTTPMethod,
+        url: URLType? = nil,
+        content: Content? = nil,
+        params: QueryParamsType? = nil,
+        headers: HeadersType? = nil,
+        timeout: TimeInterval? = nil
+    ) throws -> URLRequest {
+        let url = url == nil ? baseURL : try Self.mergeURL(url!, original: baseURL)
+        guard var url else {
+            throw HttpXError.invalidURL(message: "the request URL is invalid or conflicting with the base URL.")
+        }
+
+        let headers = headers == nil ? self.headers : Self.mergeHeaders(headers!, original: self.headers)
+        let params = params == nil ? self.params : Self.mergeQueryParams(params!, original: self.params)
+        let timeout = timeout ?? self.timeout
+
+        try url.mergeQueryItems(params)
+        var request = URLRequest(url: url, timeoutInterval: timeout)
+        request.httpMethod = method.rawValue
+        for (key, value) in headers {
+            request.addValue(value, forHTTPHeaderField: key)
+        }
+        try content?.encodeContent(request: &request, encode: defaultEncoding)
+        return request
+    }
+
     // MARK: Internal
 
     internal var session: URLSession
@@ -209,33 +252,6 @@ public class BaseClient {
             }
         }
         return mergedQueryParams
-    }
-
-    internal func buildRequest(
-        method: HTTPMethod,
-        url: URLType? = nil,
-        content: Content? = nil,
-        params: QueryParamsType? = nil,
-        headers: HeadersType? = nil,
-        timeout: TimeInterval? = nil
-    ) throws -> URLRequest {
-        let url = url == nil ? baseURL : try Self.mergeURL(url!, original: baseURL)
-        guard var url else {
-            throw HttpXError.invalidURL(message: "the request URL is invalid or conflicting with the base URL.")
-        }
-
-        let headers = headers == nil ? self.headers : Self.mergeHeaders(headers!, original: self.headers)
-        let params = params == nil ? self.params : Self.mergeQueryParams(params!, original: self.params)
-        let timeout = timeout ?? self.timeout
-
-        try url.mergeQueryItems(params)
-        var request = URLRequest(url: url, timeoutInterval: timeout)
-        request.httpMethod = method.rawValue
-        for (key, value) in headers {
-            request.addValue(value, forHTTPHeaderField: key)
-        }
-        try content?.encodeContent(request: &request, encode: defaultEncoding)
-        return request
     }
 
     internal func buildRedirectRequest(request: URLRequest, response: Response) throws -> URLRequest {
