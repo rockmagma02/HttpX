@@ -16,6 +16,11 @@
 import XCTest
 
 final class WeakRefAndWeakValueDictionaryTests: XCTestCase {
+    func testNameToEncoding() {
+        XCTAssertEqual(nameToEncoding("utf-8"), String.Encoding.utf8)
+        XCTAssertNil(nameToEncoding("utf-bad"))
+    }
+
     func testWeakRefHoldsWeakReference() {
         // Given
         class TestClass {}
