@@ -69,3 +69,41 @@ internal class WeakValueDictionary<K: Hashable, V: AnyObject> {
     /// The underlying dictionary that holds the weak references to the values.
     private var dictionary: [K: WeakRef<V>] = [:]
 }
+
+internal func nameToEncoding(_ name: String) -> String.Encoding? {
+    let nameToEncodingTuple: [String: String.Encoding] = [
+        "ascii": .ascii,
+        "nextstep": .nextstep,
+        "japaneseEUC": .japaneseEUC,
+        "utf-8": .utf8,
+        "utf8": .utf8,
+        "iso-8859-1": .isoLatin1,
+        "isoLatin1": .isoLatin1,
+        "symbol": .symbol,
+        "nonLossyASCII": .nonLossyASCII,
+        "shiftJIS": .shiftJIS,
+        "iso-8859-2": .isoLatin2,
+        "isoLatin2": .isoLatin2,
+        "unicode": .unicode,
+        "windowsCP1251": .windowsCP1251,
+        "windowsCP1252": .windowsCP1252,
+        "windowsCP1253": .windowsCP1253,
+        "windowsCP1254": .windowsCP1254,
+        "windowsCP1250": .windowsCP1250,
+        "iso2022JP": .iso2022JP,
+        "macOSRoman": .macOSRoman,
+        "utf-16": .utf16,
+        "utf16": .utf16,
+        "utf-16be": .utf16BigEndian,
+        "utf16BigEndian": .utf16BigEndian,
+        "utf-16le": .utf16LittleEndian,
+        "utf16LittleEndian": .utf16LittleEndian,
+        "utf-32": .utf32,
+        "utf32": .utf32,
+        "utf-32be": .utf32BigEndian,
+        "utf32BigEndian": .utf32BigEndian,
+        "utf-32le": .utf32LittleEndian,
+        "utf32LittleEndian": .utf32LittleEndian,
+    ]
+    return nameToEncodingTuple.first { $0.key.lowercased() == name.lowercased() }?.value
+}
