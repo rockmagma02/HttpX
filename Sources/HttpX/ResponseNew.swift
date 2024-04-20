@@ -90,14 +90,18 @@ public class ResponseNew: CustomStringConvertible, IteratorProtocol, Sequence, A
 
     /// The Content-Length from the headers.
     public var expectedContentLength: Int64? {
-        Int64(headersPrivate["Content-Length"] ?? "-1")
+        let lengthText = value(forHTTPHeaderField: "Content-Length")
+        guard let length = lengthText else {
+            return nil
+        }
+        return Int64(length)
     }
 
     /// The suggested filename from the headers.
     public var suggestedFilename: String? {
         // use regex to find value after filename=
         let regex = try! NSRegularExpression(pattern: "filename=(.*)", options: []) // swiftlint:disable:this force_try
-        let header = headersPrivate["Content-Disposition"] ?? ""
+        let header = value(forHTTPHeaderField: "Content-Disposition") ?? ""
         let range = NSRange(location: 0, length: header.utf16.count)
         let match = regex.firstMatch(in: header, options: [], range: range)
         guard let match else {
@@ -119,12 +123,12 @@ public class ResponseNew: CustomStringConvertible, IteratorProtocol, Sequence, A
 
     /// The MIME type from the headers.
     public var mimeType: String? {
-        headersPrivate["Content-Type"]
+        value(forHTTPHeaderField: "Content-Type")
     }
 
     /// The text encoding name from the headers.
     public var textEncodingName: String? {
-        headersPrivate["Content-Type"]?.components(separatedBy: "charset=").last
+        value(forHTTPHeaderField: "Content-Type")?.components(separatedBy: "charset=").last
     }
 
     /// Determines if the response has a redirect location.
