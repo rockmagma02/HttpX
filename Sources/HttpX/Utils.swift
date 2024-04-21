@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import Dispatch
+import Foundation
+
 // MARK: - WeakRef
 
 /// A generic class that holds a weak reference to an object.
@@ -106,4 +109,100 @@ internal func nameToEncoding(_ name: String) -> String.Encoding? {
         "utf32LittleEndian": .utf32LittleEndian,
     ]
     return nameToEncodingTuple.first { $0.key.lowercased() == name.lowercased() }?.value
+}
+
+// MARK: - AsyncDispatchSemphore
+
+internal actor AsyncDispatchSemphore {
+    // MARK: Lifecycle
+
+    deinit {}
+
+    internal init(value: Int) {
+        self.value = value
+    }
+
+    // MARK: Internal
+
+    internal func wait() async {
+        value -= 1
+        if value < 0 {
+            let task = Task<Void, Never> { [self] in
+                _ = await withCheckedContinuation { continuation in
+                    continuations.append((continuation, UUID()))
+                }
+            }
+            await task.value
+        }
+    }
+
+    internal func wait(timeout: DispatchTime) async -> DispatchTimeoutResult {
+        await withCheckedContinuation { continuation in
+            let id = UUID()
+            if self.value >= 1 {
+                self.value -= 1
+                continuation.resume(returning: .success)
+                return
+            }
+
+            value -= 1
+            queue.asyncAfter(deadline: timeout) {
+                Task { await self.removeContinuation(id: id, withResult: .timedOut) }
+            }
+            Task { await self.addContinuation(id: id, continuation: continuation) }
+        }
+    }
+
+    internal func wait(wallTimeout: DispatchWallTime) async -> DispatchTimeoutResult {
+        await withCheckedContinuation { continuation in
+            let id = UUID()
+            if self.value >= 1 {
+                self.value -= 1
+                continuation.resume(returning: .success)
+                return
+            }
+
+            value -= 1
+            queue.asyncAfter(wallDeadline: wallTimeout) {
+                Task { await self.removeContinuation(id: id, withResult: .timedOut) }
+            }
+            Task { await self.addContinuation(id: id, continuation: continuation) }
+        }
+    }
+
+    internal func signal() {
+        value += 1
+        if let continuation = continuations.first {
+            continuations.removeFirst()
+            continuation.continuation.resume(returning: .success)
+        }
+    }
+
+    // MARK: Private
+
+    private var value: Int
+    private var continuations = [
+        (
+            continuation: CheckedContinuation<DispatchTimeoutResult, Never>,
+            id: UUID
+        ),
+    ]()
+    private var queue = DispatchQueue(label: "com.AsyncDispatchSemphore.\(UUID().uuidString)")
+
+    private func addContinuation(
+        id: UUID,
+        continuation: CheckedContinuation<DispatchTimeoutResult, Never>
+    ) async {
+        continuations.append((continuation, id))
+    }
+
+    private func removeContinuation(id: UUID, withResult result: DispatchTimeoutResult?) async {
+        if let index = continuations.firstIndex(where: { $0.id == id }) {
+            value += 1
+            let continuation = continuations.remove(at: index).continuation
+            if let result {
+                continuation.resume(returning: result)
+            }
+        }
+    }
 }

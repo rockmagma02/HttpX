@@ -42,54 +42,12 @@ public func request(
     cookies: CookiesType? = nil,
     auth: AuthType? = nil,
     timeout: TimeInterval = kDefaultTimeout,
-    followRedirects: Bool = false
+    followRedirects: Bool = false,
+    chunkSize: Int? = nil
 ) throws -> Response {
     try SyncClient(
         cookies: cookies
     ).request(
-        method: method,
-        url: url,
-        content: content,
-        params: params,
-        headers: headers,
-        timeout: timeout,
-        auth: auth,
-        followRedirects: followRedirects
-    )
-}
-
-/// Performs a synchronous HTTP request and returns a response stream.
-///
-/// - Parameters:
-///   - method: The HTTP method to use for the request.
-///   - url: The URL to send the request to.
-///   - params: The query parameters to include in the request.
-///   - content: The content to include in the request body.
-///   - headers: The headers to include in the request.
-///   - cookies: The cookies to include in the request.
-///   - auth: The authentication information to include in the request.
-///   - timeout: The timeout interval for the request.
-///   - followRedirects: A boolean value indicating whether to follow redirects.
-///
-/// - Returns: The response stream received from the server.
-///
-/// - Throws: An error if the request fails.
-@available(macOS 10.15, *)
-public func stream(
-    method: HTTPMethod,
-    url: URLType,
-    params: QueryParamsType? = nil,
-    content: Content? = nil,
-    headers: HeadersType? = nil,
-    cookies: CookiesType? = nil,
-    auth: AuthType? = nil,
-    timeout: TimeInterval = kDefaultTimeout,
-    followRedirects: Bool = false,
-    chunkSize: Int = kDefaultChunkSize
-) throws -> Response {
-    try SyncClient(
-        cookies: cookies
-    ).stream(
         method: method,
         url: url,
         content: content,
@@ -124,7 +82,8 @@ public func get(
     cookies: CookiesType? = nil,
     auth: AuthType? = nil,
     timeout: TimeInterval = kDefaultTimeout,
-    followRedirects: Bool = false
+    followRedirects: Bool = false,
+    chunkSize: Int? = nil
 ) throws -> Response {
     try request(
         method: .get,
@@ -134,7 +93,8 @@ public func get(
         cookies: cookies,
         auth: auth,
         timeout: timeout,
-        followRedirects: followRedirects
+        followRedirects: followRedirects,
+        chunkSize: chunkSize
     )
 }
 
@@ -162,7 +122,8 @@ public func post(
     cookies: CookiesType? = nil,
     auth: AuthType? = nil,
     timeout: TimeInterval = kDefaultTimeout,
-    followRedirects: Bool = false
+    followRedirects: Bool = false,
+    chunkSize: Int? = nil
 ) throws -> Response {
     try request(
         method: .post,
@@ -173,7 +134,8 @@ public func post(
         cookies: cookies,
         auth: auth,
         timeout: timeout,
-        followRedirects: followRedirects
+        followRedirects: followRedirects,
+        chunkSize: chunkSize
     )
 }
 
@@ -201,7 +163,8 @@ public func put(
     cookies: CookiesType? = nil,
     auth: AuthType? = nil,
     timeout: TimeInterval = kDefaultTimeout,
-    followRedirects: Bool = false
+    followRedirects: Bool = false,
+    chunkSize: Int? = nil
 ) throws -> Response {
     try request(
         method: .put,
@@ -212,7 +175,8 @@ public func put(
         cookies: cookies,
         auth: auth,
         timeout: timeout,
-        followRedirects: followRedirects
+        followRedirects: followRedirects,
+        chunkSize: chunkSize
     )
 }
 
@@ -240,7 +204,8 @@ public func patch(
     cookies: CookiesType? = nil,
     auth: AuthType? = nil,
     timeout: TimeInterval = kDefaultTimeout,
-    followRedirects: Bool = false
+    followRedirects: Bool = false,
+    chunkSize: Int? = nil
 ) throws -> Response {
     try request(
         method: .patch,
@@ -251,7 +216,8 @@ public func patch(
         cookies: cookies,
         auth: auth,
         timeout: timeout,
-        followRedirects: followRedirects
+        followRedirects: followRedirects,
+        chunkSize: chunkSize
     )
 }
 
@@ -279,7 +245,8 @@ public func delete(
     cookies: CookiesType? = nil,
     auth: AuthType? = nil,
     timeout: TimeInterval = kDefaultTimeout,
-    followRedirects: Bool = false
+    followRedirects: Bool = false,
+    chunkSize: Int? = nil
 ) throws -> Response {
     try request(
         method: .delete,
@@ -290,7 +257,8 @@ public func delete(
         cookies: cookies,
         auth: auth,
         timeout: timeout,
-        followRedirects: followRedirects
+        followRedirects: followRedirects,
+        chunkSize: chunkSize
     )
 }
 
@@ -320,54 +288,12 @@ public func request(
     cookies: CookiesType? = nil,
     auth: AuthType? = nil,
     timeout: TimeInterval = kDefaultTimeout,
-    followRedirects: Bool = false
+    followRedirects: Bool = false,
+    chunkSize: Int? = nil
 ) async throws -> Response {
     try await AsyncClient(
         cookies: cookies
     ).request(
-        method: method,
-        url: url,
-        content: content,
-        params: params,
-        headers: headers,
-        timeout: timeout,
-        auth: auth,
-        followRedirects: followRedirects
-    )
-}
-
-/// Performs a asynchronous HTTP request and returns a response stream.
-///
-/// - Parameters:
-///   - method: The HTTP method to use for the request.
-///   - url: The URL to send the request to.
-///   - params: The query parameters to include in the request.
-///   - content: The content to include in the request body.
-///   - headers: The headers to include in the request.
-///   - cookies: The cookies to include in the request.
-///   - auth: The authentication information to include in the request.
-///   - timeout: The timeout interval for the request.
-///   - followRedirects: A boolean value indicating whether to follow redirects.
-///
-/// - Returns: The response stream received from the server.
-///
-/// - Throws: An error if the request fails.
-@available(macOS 10.15, *)
-public func stream(
-    method: HTTPMethod,
-    url: URLType,
-    params: QueryParamsType? = nil,
-    content: Content? = nil,
-    headers: HeadersType? = nil,
-    cookies: CookiesType? = nil,
-    auth: AuthType? = nil,
-    timeout: TimeInterval = kDefaultTimeout,
-    followRedirects: Bool = false,
-    chunkSize: Int = kDefaultChunkSize
-) async throws -> Response {
-    try await AsyncClient(
-        cookies: cookies
-    ).stream(
         method: method,
         url: url,
         content: content,
@@ -402,7 +328,8 @@ public func get(
     cookies: CookiesType? = nil,
     auth: AuthType? = nil,
     timeout: TimeInterval = kDefaultTimeout,
-    followRedirects: Bool = false
+    followRedirects: Bool = false,
+    chunkSize: Int? = nil
 ) async throws -> Response {
     try await request(
         method: .get,
@@ -412,7 +339,8 @@ public func get(
         cookies: cookies,
         auth: auth,
         timeout: timeout,
-        followRedirects: followRedirects
+        followRedirects: followRedirects,
+        chunkSize: chunkSize
     )
 }
 
@@ -440,7 +368,8 @@ public func post(
     cookies: CookiesType? = nil,
     auth: AuthType? = nil,
     timeout: TimeInterval = kDefaultTimeout,
-    followRedirects: Bool = false
+    followRedirects: Bool = false,
+    chunkSize: Int? = nil
 ) async throws -> Response {
     try await request(
         method: .post,
@@ -451,7 +380,8 @@ public func post(
         cookies: cookies,
         auth: auth,
         timeout: timeout,
-        followRedirects: followRedirects
+        followRedirects: followRedirects,
+        chunkSize: chunkSize
     )
 }
 
@@ -479,7 +409,8 @@ public func put(
     cookies: CookiesType? = nil,
     auth: AuthType? = nil,
     timeout: TimeInterval = kDefaultTimeout,
-    followRedirects: Bool = false
+    followRedirects: Bool = false,
+    chunkSize: Int? = nil
 ) async throws -> Response {
     try await request(
         method: .put,
@@ -490,7 +421,8 @@ public func put(
         cookies: cookies,
         auth: auth,
         timeout: timeout,
-        followRedirects: followRedirects
+        followRedirects: followRedirects,
+        chunkSize: chunkSize
     )
 }
 
@@ -518,7 +450,8 @@ public func patch(
     cookies: CookiesType? = nil,
     auth: AuthType? = nil,
     timeout: TimeInterval = kDefaultTimeout,
-    followRedirects: Bool = false
+    followRedirects: Bool = false,
+    chunkSize: Int? = nil
 ) async throws -> Response {
     try await request(
         method: .patch,
@@ -529,7 +462,8 @@ public func patch(
         cookies: cookies,
         auth: auth,
         timeout: timeout,
-        followRedirects: followRedirects
+        followRedirects: followRedirects,
+        chunkSize: chunkSize
     )
 }
 
@@ -557,7 +491,8 @@ public func delete(
     cookies: CookiesType? = nil,
     auth: AuthType? = nil,
     timeout: TimeInterval = kDefaultTimeout,
-    followRedirects: Bool = false
+    followRedirects: Bool = false,
+    chunkSize: Int? = nil
 ) async throws -> Response {
     try await request(
         method: .delete,
@@ -568,6 +503,7 @@ public func delete(
         cookies: cookies,
         auth: auth,
         timeout: timeout,
-        followRedirects: followRedirects
+        followRedirects: followRedirects,
+        chunkSize: chunkSize
     )
 }

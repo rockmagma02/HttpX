@@ -14,13 +14,11 @@
 
 import Foundation
 
-private let kDefaultTimeoutNumber = 5
+private let kDefaultTimeoutNumber = 30
 /// Default timeout for network requests in seconds.
 public let kDefaultTimeout = TimeInterval(kDefaultTimeoutNumber)
 /// Maximum number of redirects allowed for a network request.
 public let kDefaultMaxRedirects = 20
-/// Default chunk size for reading data from a stream.
-public let kDefaultChunkSize = 1_024
 
 internal let kTimeoutCode = -1_001
 
