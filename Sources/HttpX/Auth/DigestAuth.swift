@@ -56,13 +56,13 @@ public class DigestAuth: BaseAuth {
 
         // Second time, the Request and the Response are both passed
         if var request, let lastResponse {
-            if lastResponse.URLResponse?.status.0 != needAuthStatusCode {
+            if lastResponse.statusCode != needAuthStatusCode {
                 // If the response is not a 401 then we don't need to
                 // build an authenticated request
                 return (nil, true)
             }
 
-            let authHeader = lastResponse.URLResponse?.getHeaderValue(forHTTPHeaderField: "Www-Authenticate")
+            let authHeader = lastResponse.value(forHTTPHeaderField: "Www-Authenticate")
             guard let authHeader, authHeader.lowercased().hasPrefix("digest ") else {
                 // If the response is not a digest auth challenge then we don't need to
                 // build an authenticated request

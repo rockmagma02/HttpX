@@ -17,25 +17,13 @@ import Foundation
 // swiftlint:disable required_deinit
 
 /// The delegate class for HttpX requests.
-public class HttpXDelegate: NSObject, URLSessionDelegate, URLSessionTaskDelegate {
+public class HttpXDelegate: NSObject, URLSessionDelegate, URLSessionTaskDelegate, URLSessionDataDelegate {
     // swiftlint:enable required_deinit
     public func urlSession(
         _: URLSession,
-        didReceive _: URLAuthenticationChallenge,
-        completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
-    ) {
+        didReceive _: URLAuthenticationChallenge
+    ) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
         // Make sure URLSession will not automatically handle the challenge
-        completionHandler(.useCredential, nil)
-    }
-
-    public func urlSession(
-        _: URLSession,
-        task _: URLSessionTask,
-        willPerformHTTPRedirection _: HTTPURLResponse,
-        newRequest _: URLRequest,
-        completionHandler: @escaping (URLRequest?) -> Void
-    ) {
-        // Make sure URLSession will not automatically follow the redirection
-        completionHandler(nil)
+        (.useCredential, nil)
     }
 }

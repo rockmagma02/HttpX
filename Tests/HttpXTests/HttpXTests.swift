@@ -33,50 +33,45 @@ internal final class HttpMethodsTests: XCTestCase {
     internal func testDelete() throws {
         let url = "\(baseURL)/delete"
         let response = try HttpX.delete(url: URLType.string(url), params: QueryParamsType.array([("test", "ok")]))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
+        XCTAssertEqual(response.statusCode, 200)
 
-        let data = response.data!
-        let json = try JSONSerialization.jsonObject(with: data, options: []) as! [String: Any]
+        let json = response.getJSON() as! [String: Any]
         XCTAssertEqual(json["args"] as! [String: String], ["test": "ok"])
     }
 
     internal func testGet() throws {
         let url = "\(baseURL)/get"
         let response = try HttpX.get(url: URLType.string(url), params: QueryParamsType.array([("test", "ok")]))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
+        XCTAssertEqual(response.statusCode, 200)
 
-        let data = response.data!
-        let json = try JSONSerialization.jsonObject(with: data, options: []) as! [String: Any]
+        let json = response.getJSON() as! [String: Any]
         XCTAssertEqual(json["args"] as! [String: String], ["test": "ok"])
     }
 
     internal func testPatch() throws {
         let url = "\(baseURL)/patch"
         let response = try HttpX.patch(url: URLType.string(url), params: QueryParamsType.array([("test", "ok")]))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
+        XCTAssertEqual(response.statusCode, 200)
 
-        let data = response.data!
-        let json = try JSONSerialization.jsonObject(with: data, options: []) as! [String: Any]
+        let json = response.getJSON() as! [String: Any]
         XCTAssertEqual(json["args"] as! [String: String], ["test": "ok"])
     }
 
     internal func testPost() throws {
         let url = "\(baseURL)/post"
         let response = try HttpX.post(url: URLType.string(url), params: QueryParamsType.array([("test", "ok")]))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
+        XCTAssertEqual(response.statusCode, 200)
 
-        let data = response.data!
-        let json = try JSONSerialization.jsonObject(with: data, options: []) as! [String: Any]
+        let json = response.getJSON() as! [String: Any]
         XCTAssertEqual(json["args"] as! [String: String], ["test": "ok"])
     }
 
     internal func testPut() throws {
         let url = "\(baseURL)/put"
         let response = try HttpX.put(url: URLType.string(url), params: QueryParamsType.array([("test", "ok")]))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
+        XCTAssertEqual(response.statusCode, 200)
 
-        let data = response.data!
-        let json = try JSONSerialization.jsonObject(with: data, options: []) as! [String: Any]
+        let json = response.getJSON() as! [String: Any]
         XCTAssertEqual(json["args"] as! [String: String], ["test": "ok"])
     }
 
@@ -108,13 +103,13 @@ internal final class AuthTests: XCTestCase {
         let url = "\(basicURL)/basic-auth/\(user)/\(passwd)"
         let auth = BasicAuth(username: user, password: passwd)
         let response = try HttpX.get(url: URLType.string(url), auth: AuthType.class(auth))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
+        XCTAssertEqual(response.statusCode, 200)
 
         // Failed authentication
         let url2 = "\(basicURL)/basic-auth/\(user)/\(passwd)"
         let auth2 = BasicAuth(username: user, password: "\(passwd)2")
         let response2 = try HttpX.get(url: URLType.string(url2), auth: AuthType.class(auth2))
-        XCTAssertEqual(response2.URLResponse?.status.0, 401)
+        XCTAssertEqual(response2.statusCode, 401)
     }
 
     internal func testBearerAuth() throws {
@@ -122,12 +117,12 @@ internal final class AuthTests: XCTestCase {
         let url = "\(basicURL)/bearer"
         let auth = OAuth(token: "123")
         let response = try HttpX.get(url: URLType.string(url), auth: AuthType.class(auth))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
+        XCTAssertEqual(response.statusCode, 200)
 
         // Failed authentication
         let url2 = "\(basicURL)/bearer"
         let response2 = try HttpX.get(url: URLType.string(url2))
-        XCTAssertEqual(response2.URLResponse?.status.0, 401)
+        XCTAssertEqual(response2.statusCode, 401)
     }
 
     internal func testDigestAuth() throws {
@@ -137,12 +132,12 @@ internal final class AuthTests: XCTestCase {
         // Successful authentication
         let url = "\(basicURL)/digest-auth/auth/\(user)/\(passwd)"
         let response = try HttpX.get(url: URLType.string(url), auth: AuthType.class(DigestAuth(username: user, password: passwd)))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
+        XCTAssertEqual(response.statusCode, 200)
 
         // Failed authentication
         let url2 = "\(basicURL)/digest-auth/auth/\(user)/\(passwd)"
         let response2 = try HttpX.get(url: URLType.string(url2), auth: AuthType.class(DigestAuth(username: user, password: "\(passwd)2")))
-        XCTAssertEqual(response2.URLResponse?.status.0, 401)
+        XCTAssertEqual(response2.statusCode, 401)
     }
 
     internal func testHiddenBasicAuth() throws {
@@ -153,13 +148,13 @@ internal final class AuthTests: XCTestCase {
         let url = "\(basicURL)/hidden-basic-auth/\(user)/\(passwd)"
         let auth = BasicAuth(username: user, password: passwd)
         let response = try HttpX.get(url: URLType.string(url), auth: AuthType.class(auth))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
+        XCTAssertEqual(response.statusCode, 200)
 
         // Failed authentication
         let url2 = "\(basicURL)/hidden-basic-auth/\(user)/\(passwd)"
         let auth2 = BasicAuth(username: user, password: "\(passwd)2")
         let response2 = try HttpX.get(url: URLType.string(url2), auth: AuthType.class(auth2))
-        XCTAssertEqual(response2.URLResponse?.status.0, 404)
+        XCTAssertEqual(response2.statusCode, 404)
     }
 
     // MARK: Private
@@ -186,12 +181,12 @@ internal final class StatusCodeTests: XCTestCase {
         let status = 200
         let url = "\(statusURL)/\(status)"
         let response = try HttpX.get(url: URLType.string(url))
-        XCTAssertEqual(response.URLResponse?.status.0, status)
+        XCTAssertEqual(response.statusCode, status)
 
         let status2 = 400
         let url2 = "\(statusURL)/\(status2)"
         let response2 = try HttpX.get(url: URLType.string(url2))
-        XCTAssertEqual(response2.URLResponse?.status.0, status2)
+        XCTAssertEqual(response2.statusCode, status2)
     }
 
     // MARK: Private
@@ -218,10 +213,9 @@ internal final class RequestInspectionTests: XCTestCase {
         let url = "\(inspectURL)/headers"
         let expectedHeaders = ["test": "ok"]
         let response = try HttpX.get(url: URLType.string(url), headers: HeadersType.dictionary(expectedHeaders))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
+        XCTAssertEqual(response.statusCode, 200)
 
-        let data = response.data!
-        let json = try JSONSerialization.jsonObject(with: data, options: []) as! [String: Any]
+        let json = response.getJSON() as! [String: Any]
         let headers = json["headers"] as! [String: String]
         XCTAssertEqual(headers["Test"], "ok")
     }
@@ -230,10 +224,9 @@ internal final class RequestInspectionTests: XCTestCase {
         let url = "\(inspectURL)/user-agent"
         let expectedUserAgent = "test"
         let response = try HttpX.get(url: URLType.string(url), headers: HeadersType.dictionary(["User-Agent": expectedUserAgent]))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
+        XCTAssertEqual(response.statusCode, 200)
 
-        let data = response.data!
-        let json = try JSONSerialization.jsonObject(with: data, options: []) as! [String: Any]
+        let json = response.getJSON() as! [String: Any]
         let userAgent = json["user-agent"] as! String
         XCTAssertEqual(userAgent, expectedUserAgent)
     }
@@ -262,32 +255,32 @@ internal final class ResponseInspectionTests: XCTestCase {
         // Sets a Cache-Control header for n seconds.
         let url = "\(inspectURL)/cache/123"
         let response = try HttpX.get(url: URLType.string(url))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
-        XCTAssertEqual(response.URLResponse?.getHeaderValue(forHTTPHeaderField: "Cache-Control"), "public, max-age=123")
+        XCTAssertEqual(response.statusCode, 200)
+        XCTAssertEqual(response.value(forHTTPHeaderField: "Cache-Control"), "public, max-age=123")
     }
 
     internal func testEtag() throws {
         // Assumes the resource has the given etag and responds to If-None-Match and If-Match headers appropriately.
         let url = "\(inspectURL)/etag/123"
         let response = try HttpX.get(url: URLType.string(url))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
-        XCTAssertEqual(response.URLResponse?.getHeaderValue(forHTTPHeaderField: "Etag"), "123")
+        XCTAssertEqual(response.statusCode, 200)
+        XCTAssertEqual(response.value(forHTTPHeaderField: "Etag"), "123")
     }
 
     internal func testGetResponseHeader() throws {
         // Returns a set of response headers from the query string.
         let url = "\(inspectURL)/response-headers"
         let response = try HttpX.get(url: URLType.string(url), params: QueryParamsType.array([("test", "ok")]))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
-        XCTAssertEqual(response.URLResponse?.getHeaderValue(forHTTPHeaderField: "test"), "ok")
+        XCTAssertEqual(response.statusCode, 200)
+        XCTAssertEqual(response.value(forHTTPHeaderField: "test"), "ok")
     }
 
     internal func testPostResponseHeader() throws {
         // Returns a set of response headers from the query string.
         let url = "\(inspectURL)/response-headers"
         let response = try HttpX.post(url: URLType.string(url), params: QueryParamsType.array([("test", "ok")]))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
-        XCTAssertEqual(response.URLResponse?.getHeaderValue(forHTTPHeaderField: "test"), "ok")
+        XCTAssertEqual(response.statusCode, 200)
+        XCTAssertEqual(response.value(forHTTPHeaderField: "test"), "ok")
     }
 
     // MARK: Private
@@ -313,11 +306,10 @@ internal final class ResponseFormatsTests: XCTestCase {
     internal func testBrotli() throws {
         let url = "\(formatURL)/brotli"
         let response = try HttpX.get(url: URLType.string(url))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
-        XCTAssertEqual(response.URLResponse?.getHeaderValue(forHTTPHeaderField: "Content-Encoding"), "br")
+        XCTAssertEqual(response.statusCode, 200)
+        XCTAssertEqual(response.value(forHTTPHeaderField: "Content-Encoding"), "br")
 
-        let data = response.data!
-        let json = try JSONSerialization.jsonObject(with: data, options: []) as! [String: Any]
+        let json = response.getJSON() as! [String: Any]
         let brotli = json["brotli"] as! Bool
         XCTAssertTrue(brotli)
     }
@@ -325,11 +317,10 @@ internal final class ResponseFormatsTests: XCTestCase {
     internal func testDeflate() throws {
         let url = "\(formatURL)/deflate"
         let response = try HttpX.get(url: URLType.string(url))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
-        XCTAssertEqual(response.URLResponse?.getHeaderValue(forHTTPHeaderField: "Content-Encoding"), "deflate")
+        XCTAssertEqual(response.statusCode, 200)
+        XCTAssertEqual(response.value(forHTTPHeaderField: "Content-Encoding"), "deflate")
 
-        let data = response.data!
-        let json = try JSONSerialization.jsonObject(with: data, options: []) as! [String: Any]
+        let json = response.getJSON() as! [String: Any]
         let deflate = json["deflated"] as! Bool
         XCTAssertTrue(deflate)
     }
@@ -337,33 +328,30 @@ internal final class ResponseFormatsTests: XCTestCase {
     internal func testDeny() throws {
         let url = "\(formatURL)/deny"
         let response = try HttpX.get(url: URLType.string(url))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
-        XCTAssertEqual(response.URLResponse?.getHeaderValue(forHTTPHeaderField: "Content-Type"), "text/plain")
+        XCTAssertEqual(response.statusCode, 200)
+        XCTAssertEqual(response.value(forHTTPHeaderField: "Content-Type"), "text/plain")
 
-        let data = response.data!
-        let text = String(data: data, encoding: .utf8)!
+        let text = response.getText()
         XCTAssertTrue(text.contains("YOU SHOULDN'T BE HERE"))
     }
 
     internal func testUtf8() throws {
         let url = "\(formatURL)/encoding/utf8"
         let response = try HttpX.get(url: URLType.string(url))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
-        XCTAssertEqual(response.URLResponse?.getHeaderValue(forHTTPHeaderField: "Content-Type"), "text/html; charset=utf-8")
+        XCTAssertEqual(response.statusCode, 200)
+        XCTAssertEqual(response.value(forHTTPHeaderField: "Content-Type"), "text/html; charset=utf-8")
 
-        let data = response.data!
-        let text = String(data: data, encoding: .utf8)!
+        let text = response.getText()
         XCTAssertTrue(text.contains("UTF-8 encoded"))
     }
 
     internal func testGzip() throws {
         let url = "\(formatURL)/gzip"
         let response = try HttpX.get(url: URLType.string(url))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
-        XCTAssertEqual(response.URLResponse?.getHeaderValue(forHTTPHeaderField: "Content-Encoding"), "gzip")
+        XCTAssertEqual(response.statusCode, 200)
+        XCTAssertEqual(response.value(forHTTPHeaderField: "Content-Encoding"), "gzip")
 
-        let data = response.data!
-        let json = try JSONSerialization.jsonObject(with: data, options: []) as! [String: Any]
+        let json = response.getJSON() as! [String: Any]
         let gzip = json["gzipped"] as! Bool
         XCTAssertTrue(gzip)
     }
@@ -371,45 +359,42 @@ internal final class ResponseFormatsTests: XCTestCase {
     internal func testHtml() throws {
         let url = "\(formatURL)/html"
         let response = try HttpX.get(url: URLType.string(url))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
-        XCTAssertEqual(response.URLResponse?.getHeaderValue(forHTTPHeaderField: "Content-Type"), "text/html; charset=utf-8")
+        XCTAssertEqual(response.statusCode, 200)
+        XCTAssertEqual(response.value(forHTTPHeaderField: "Content-Type"), "text/html; charset=utf-8")
 
-        let data = response.data!
-        let text = String(data: data, encoding: .utf8)!
+        let text = response.getText()
         XCTAssertTrue(text.contains("<html>"))
     }
 
     internal func testJson() throws {
         let url = "\(formatURL)/json"
         let response = try HttpX.get(url: URLType.string(url))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
-        XCTAssertEqual(response.URLResponse?.getHeaderValue(forHTTPHeaderField: "Content-Type"), "application/json")
+        XCTAssertEqual(response.statusCode, 200)
+        XCTAssertEqual(response.value(forHTTPHeaderField: "Content-Type"), "application/json")
 
-        let data = response.data!
-        XCTAssertNoThrow(try JSONSerialization.jsonObject(with: data, options: []))
+        let json = response.getJSON() as! [String: Any]
+        XCTAssertNotNil(json)
     }
 
     internal func testRobots() throws {
         let url = "\(formatURL)/robots.txt"
         let response = try HttpX.get(url: URLType.string(url))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
-        XCTAssertEqual(response.URLResponse?.getHeaderValue(forHTTPHeaderField: "Content-Type"), "text/plain")
+        XCTAssertEqual(response.statusCode, 200)
+        XCTAssertEqual(response.value(forHTTPHeaderField: "Content-Type"), "text/plain")
 
-        let data = response.data!
-        let text = String(data: data, encoding: .utf8)!
+        let text = response.getText()
         XCTAssertTrue(text.contains("User-agent: *"))
     }
 
     internal func testXml() throws {
         let url = "\(formatURL)/xml"
         let response = try HttpX.get(url: URLType.string(url))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
-        XCTAssertEqual(response.URLResponse?.getHeaderValue(forHTTPHeaderField: "Content-Type"), "application/xml")
+        XCTAssertEqual(response.statusCode, 200)
+        XCTAssertEqual(response.value(forHTTPHeaderField: "Content-Type"), "application/xml")
 
-        let data = response.data!
-        let xmlString = String(data: data, encoding: .utf8)!
-        XCTAssertTrue(xmlString.hasPrefix("<?xml"))
-        XCTAssertTrue(xmlString.hasSuffix("</slideshow>"))
+        let text = response.getText()
+        XCTAssertTrue(text.hasPrefix("<?xml"))
+        XCTAssertTrue(text.hasSuffix("</slideshow>"))
     }
 
     // MARK: Private
@@ -435,19 +420,19 @@ internal final class DynamicDataTests: XCTestCase {
     internal func testBase64() throws {
         let url = "\(dynamicURL)/base64/SFRUUEJJTiBpcyBhd2Vzb21l"
         let response = try HttpX.get(url: URLType.string(url))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
+        XCTAssertEqual(response.statusCode, 200)
 
-        let data = response.data!
-        let text = String(data: data, encoding: .utf8)!
+        let text = response.getText()
         XCTAssertEqual(text, "HTTPBIN is awesome")
     }
 
     internal func testBytes() throws {
         let url = "\(dynamicURL)/bytes/1024"
         let response = try HttpX.get(url: URLType.string(url))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
-        XCTAssertEqual(response.URLResponse?.getHeaderValue(forHTTPHeaderField: "Content-Length"), "1024")
-        XCTAssertEqual(response.data?.count, 1_024)
+        XCTAssertEqual(response.statusCode, 200)
+        XCTAssertEqual(response.value(forHTTPHeaderField: "Content-Length"), "1024")
+        let data = response.getData()
+        XCTAssertEqual(data.count, 1_024)
     }
 
     internal func testDelay() throws {
@@ -456,7 +441,7 @@ internal final class DynamicDataTests: XCTestCase {
         let response = try HttpX.get(url: URLType.string(url))
         let end = Date()
 
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
+        XCTAssertEqual(response.statusCode, 200)
         let interval = end.timeIntervalSince(start)
         XCTAssertTrue(interval > 3)
     }
@@ -465,20 +450,21 @@ internal final class DynamicDataTests: XCTestCase {
         let url = "\(dynamicURL)/drip?numbytes=1024&duration=2&delay=1"
         let start = Date()
         let response = try HttpX.get(url: URLType.string(url))
-        let end = Date()
 
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
+        XCTAssertEqual(response.statusCode, 200)
+        let data = response.getData()
+        let end = Date()
         let interval = end.timeIntervalSince(start)
         XCTAssertTrue(interval > 2)
-        XCTAssertEqual(response.data?.count, 1_024)
+        XCTAssertEqual(data.count, 1_024)
     }
 
     internal func testLinks() throws {
         let url = "\(dynamicURL)/links/5/5"
         let response = try HttpX.get(url: URLType.string(url))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
+        XCTAssertEqual(response.statusCode, 200)
 
-        let data = response.data!
+        let data = response.getData()
         let text = String(data: data, encoding: .utf8)!
         for idx in 0 ... 4 {
             XCTAssertTrue(text.contains("<a href='/links/5/\(idx)'>\(idx)</a>"))
@@ -487,21 +473,20 @@ internal final class DynamicDataTests: XCTestCase {
 
     internal func testRange() throws {
         let url = "\(dynamicURL)/range/1024"
-        let response = try HttpX.stream(method: .get, url: URLType.string(url))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
+        let response = try HttpX.request(method: .get, url: URLType.string(url))
+        XCTAssertEqual(response.statusCode, 200)
 
-        response.readAllFormSyncStream()
-        let data = response.data!
+        let data = response.getData()
         XCTAssertEqual(data.count, 1_024)
     }
 
     internal func testStream() throws {
         let url = "\(dynamicURL)/stream-bytes/5000"
-        let response = try HttpX.stream(method: .get, url: URLType.string(url), chunkSize: 1_024)
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
+        let response = try HttpX.request(method: .get, url: URLType.string(url), chunkSize: 1_024)
+        XCTAssertEqual(response.statusCode, 200)
 
         var dataLength: [Int] = []
-        for chunk in response.syncStream! {
+        for chunk in response {
             dataLength.append(chunk.count)
         }
         XCTAssertEqual(dataLength.count, 5)
@@ -511,10 +496,9 @@ internal final class DynamicDataTests: XCTestCase {
     internal func testUUID() throws {
         let url = "\(dynamicURL)/uuid"
         let response = try HttpX.get(url: URLType.string(url))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
+        XCTAssertEqual(response.statusCode, 200)
 
-        let data = response.data!
-        let json = try JSONSerialization.jsonObject(with: data, options: []) as! [String: Any]
+        let json = response.getJSON() as! [String: Any]
         let uuidString = json["uuid"] as? String
         let uuid = UUID(uuidString: uuidString!)
         XCTAssertNotNil(uuid)
@@ -543,10 +527,10 @@ internal final class ImagesTests: XCTestCase {
     internal func testImage() throws {
         let url = "\(imagesURL)/image"
         let response = try HttpX.get(url: URLType.string(url), headers: HeadersType.dictionary(["Accept": "image/webp"]))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
-        XCTAssertEqual(response.URLResponse?.getHeaderValue(forHTTPHeaderField: "Content-Type"), "image/webp")
+        XCTAssertEqual(response.statusCode, 200)
+        XCTAssertEqual(response.value(forHTTPHeaderField: "Content-Type"), "image/webp")
 
-        let data = response.data!
+        let data = response.getData()
         let riffHeader: [UInt8] = [0x52, 0x49, 0x46, 0x46] // 'RIFF'
         let webpFormat: [UInt8] = [0x57, 0x45, 0x42, 0x50] // 'WEBP'
 
@@ -558,10 +542,10 @@ internal final class ImagesTests: XCTestCase {
     internal func testJpeg() throws {
         let url = "\(imagesURL)/image/jpeg"
         let response = try HttpX.get(url: URLType.string(url))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
-        XCTAssertEqual(response.URLResponse?.getHeaderValue(forHTTPHeaderField: "Content-Type"), "image/jpeg")
+        XCTAssertEqual(response.statusCode, 200)
+        XCTAssertEqual(response.value(forHTTPHeaderField: "Content-Type"), "image/jpeg")
 
-        let data = response.data!
+        let data = response.getData()
         let jpegHeader: [UInt8] = [0xFF, 0xD8, 0xFF]
         XCTAssertTrue(data.count > 3)
         XCTAssertTrue(data.prefix(3).elementsEqual(jpegHeader))
@@ -570,10 +554,10 @@ internal final class ImagesTests: XCTestCase {
     internal func testPng() throws {
         let url = "\(imagesURL)/image/png"
         let response = try HttpX.get(url: URLType.string(url))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
-        XCTAssertEqual(response.URLResponse?.getHeaderValue(forHTTPHeaderField: "Content-Type"), "image/png")
+        XCTAssertEqual(response.statusCode, 200)
+        XCTAssertEqual(response.value(forHTTPHeaderField: "Content-Type"), "image/png")
 
-        let data = response.data!
+        let data = response.getData()
         let pngHeader: [UInt8] = [0x89, 0x50, 0x4E, 0x47]
         XCTAssertTrue(data.count > 4)
         XCTAssertTrue(data.prefix(4).elementsEqual(pngHeader))
@@ -582,8 +566,8 @@ internal final class ImagesTests: XCTestCase {
     internal func testSvg() throws {
         let url = "\(imagesURL)/image/svg"
         let response = try HttpX.get(url: URLType.string(url))
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
-        XCTAssertEqual(response.URLResponse?.getHeaderValue(forHTTPHeaderField: "Content-Type"), "image/svg+xml")
+        XCTAssertEqual(response.statusCode, 200)
+        XCTAssertEqual(response.value(forHTTPHeaderField: "Content-Type"), "image/svg+xml")
 
         // Custom XMLParser delegate to detect SVG tags
         class SVGXMLParserDelegate: NSObject, XMLParserDelegate {
@@ -598,7 +582,7 @@ internal final class ImagesTests: XCTestCase {
             }
         }
 
-        let data = response.data!
+        let data = response.getData()
         let parser = XMLParser(data: data)
         let svgDelegate = SVGXMLParserDelegate()
         parser.delegate = svgDelegate
@@ -630,31 +614,31 @@ internal final class RedirectsTests: XCTestCase {
     internal func testAbsoluteRedirect() throws {
         let url = "\(redirectsURL)/absolute-redirect/3"
         let response = try HttpX.get(url: URLType.string(url), followRedirects: false)
-        XCTAssertEqual(response.URLResponse?.status.0, 302)
-        XCTAssertEqual(response.URLResponse?.getHeaderValue(forHTTPHeaderField: "Location"), "http://httpbin.org/absolute-redirect/2")
+        XCTAssertEqual(response.statusCode, 302)
+        XCTAssertEqual(response.value(forHTTPHeaderField: "Location"), "http://httpbin.org/absolute-redirect/2")
         XCTAssertEqual(response.nextRequest?.url?.absoluteString, "http://httpbin.org/absolute-redirect/2")
 
         let response2 = try HttpX.get(url: URLType.string(url), followRedirects: true)
-        XCTAssertEqual(response2.URLResponse?.status.0, 200)
+        XCTAssertEqual(response2.statusCode, 200)
         XCTAssertEqual(response2.history.count, 3)
     }
 
     internal func testRedirectTo() throws {
         let url = "\(redirectsURL)/redirect-to"
         let response = try HttpX.get(url: URLType.string(url), params: QueryParamsType.dictionary(["url": "https://httpbin.org/"]), followRedirects: false)
-        XCTAssertEqual(response.URLResponse?.status.0, 302)
+        XCTAssertEqual(response.statusCode, 302)
         XCTAssertEqual(response.nextRequest?.url?.absoluteString, "https://httpbin.org/")
     }
 
     internal func testRelativeRedirect() throws {
         let url = "\(redirectsURL)/relative-redirect/3"
         let response = try HttpX.get(url: URLType.string(url), headers: HeadersType.array([("test", "value")]), followRedirects: false)
-        XCTAssertEqual(response.URLResponse?.status.0, 302)
-        XCTAssertEqual(response.URLResponse?.getHeaderValue(forHTTPHeaderField: "Location"), "/relative-redirect/2")
+        XCTAssertEqual(response.statusCode, 302)
+        XCTAssertEqual(response.value(forHTTPHeaderField: "Location"), "/relative-redirect/2")
         XCTAssertEqual(response.nextRequest?.url?.absoluteString, "https://httpbin.org/relative-redirect/2")
 
         let response2 = try HttpX.get(url: URLType.string(url), followRedirects: true)
-        XCTAssertEqual(response2.URLResponse?.status.0, 200)
+        XCTAssertEqual(response2.statusCode, 200)
         XCTAssertEqual(response2.history.count, 3)
     }
 
@@ -665,29 +649,28 @@ internal final class RedirectsTests: XCTestCase {
 
 // MARK: - OnlineTest
 
-//
 // internal final class OnlineTest: XCTestCase {
 //    // MARK: Internal
 //
 //    internal func testRelativeRedirect() throws {
 //        let url = "\(baseURL)/relative-redirect/2"
 //        let response = try HttpX.get(url: URLType.string(url), headers: HeadersType.array([("test", "value")]), followRedirects: false)
-//        XCTAssertEqual(response.URLResponse?.status.0, 302)
-//        XCTAssertEqual(response.URLResponse?.getHeaderValue(forHTTPHeaderField: "Location"), "/relative-redirect/1")
+//        XCTAssertEqual(response.statusCode, 302)
+//        XCTAssertEqual(response.value(forHTTPHeaderField: "Location"), "/relative-redirect/1")
 //        XCTAssertEqual(response.nextRequest?.url?.absoluteString, "https://httpbin.org/relative-redirect/1")
 //
 //        let response2 = try HttpX.get(url: URLType.string(url), followRedirects: true)
-//        XCTAssertEqual(response2.URLResponse?.status.0, 200)
+//        XCTAssertEqual(response2.statusCode, 200)
 //        XCTAssertEqual(response2.history.count, 2)
 //    }
 //
 //    internal func testStream() throws {
 //        let url = "\(baseURL)/stream-bytes/5000"
-//        let response = try HttpX.stream(method: .get, url: URLType.string(url))
-//        XCTAssertEqual(response.URLResponse?.status.0, 200)
+//        let response = try HttpX.request(method: .get, url: URLType.string(url), chunkSize: 1_024)
+//        XCTAssertEqual(response.statusCode, 200)
 //
 //        var dataLength: [Int] = []
-//        for chunk in response.syncStream! {
+//        for chunk in response {
 //            dataLength.append(chunk.count)
 //        }
 //        XCTAssertEqual(dataLength.count, 5)
@@ -699,8 +682,7 @@ internal final class RedirectsTests: XCTestCase {
 //        let client = SyncClient()
 //        XCTAssertThrowsError(
 //            try client.sendSingleRequest(
-//                request: URLRequest(url: URL(string: "https://httpbin.org/delay/10")!, timeoutInterval: 1),
-//                stream: (true, nil)
+//                request: URLRequest(url: URL(string: "https://httpbin.org/delay/10")!, timeoutInterval: 1)
 //            )
 //        ) { error in
 //            XCTAssertEqual(error as? HttpXError, HttpXError.networkError(message: "", code: -1_001))

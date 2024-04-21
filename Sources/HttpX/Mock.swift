@@ -139,200 +139,52 @@ private class Route {
 // MARK: - MockResponse
 
 /// A mock response used for testing HTTP requests.
-public class MockResponse {
+public class MockResponse: Response {
     // MARK: Lifecycle
 
     deinit {}
 
-    internal init() {}
+    // MARK: Public
 
-    /// Initializes a new instance of `MockResponse` with optional data, status code, and headers.
-    /// - Parameters:
-    ///   - request: The `URLRequest` associated with this response.
-    ///   - data: The optional data to return as the response body.
-    ///   - statusCode: The HTTP status code for the response. Defaults to 200.
-    ///   - headers: The optional HTTP headers for the response.
-    public init(
-        request: URLRequest,
-        data: Data? = nil,
-        statusCode: Int = 200,
-        headers: [String: String] = [:]
-    ) {
-        self.data = data
-        if let url = request.url {
-            URLResponse = HTTPURLResponse(
-                url: url,
-                statusCode: statusCode,
-                httpVersion: nil,
-                headerFields: headers.isEmpty ? nil : headers
-            )
-        }
+    override public func writeData(_ data: Data) {
+        mockStream.continuation.yield(data)
     }
 
-    /// Initializes a new instance of `MockResponse` with a data stream, status code, and headers.
-    /// - Parameters:
-    ///   - request: The `URLRequest` associated with this response.
-    ///   - dataStream: An `AsyncStream<Data>` to return as the response body.
-    ///   - statusCode: The HTTP status code for the response. Defaults to 200.
-    ///   - headers: The optional HTTP headers for the response.
-    public init(
-        request: URLRequest,
-        dataStream: AsyncStream<Data>,
-        statusCode: Int = 200,
-        headers: [String: String] = [:]
-    ) {
-        self.dataStream = dataStream
-        if let url = request.url {
-            URLResponse = HTTPURLResponse(
-                url: url,
-                statusCode: statusCode,
-                httpVersion: nil,
-                headerFields: headers.isEmpty ? nil : headers
-            )
-        }
-    }
-
-    /// Initializes a new instance of `MockResponse` with an error code and message.
-    /// - Parameters:
-    ///   - errorCode: The error code associated with the network error.
-    ///   - errorMessage: The optional error message. If not provided, an empty string is used.
-    public init(
-        errorCode: Int,
-        errorMessage: String?
-    ) {
-        error = HttpXError.networkError(message: errorMessage ?? "", code: errorCode)
+    override public func close() {
+        mockStream.continuation.finish()
     }
 
     // MARK: Internal
 
-    internal enum Mode {
-        case async
-        case sync
-    }
-
-    internal var data: Data?
-    internal var dataStream: AsyncStream<Data>?
-    internal var URLResponse: URLResponse?
-    internal var error: (any Error)?
-
-    internal static func getResponse(
-        request: URLRequest,
-        mode: Mode,
-        stream: Bool,
-        chunkSize: Int? = nil,
-        function: @escaping (URLRequest) -> MockResponse
-    ) -> Response {
-        let timeout = request.timeoutInterval
-        var response = MockResponse()
-        let queue = DispatchQueue(label: "com.httpx.mock.\(UUID().uuidString)", attributes: .concurrent)
-        let workItem = DispatchWorkItem {
-            response = function(request)
+    internal func toResponse(chunkSize: Int?) -> Response {
+        if let chunkSize {
+            Task {
+                var buffer = Data()
+                for try await chunk in mockStream.stream {
+                    buffer.append(chunk)
+                    while buffer.count >= chunkSize {
+                        super.writeData(buffer.prefix(chunkSize))
+                        buffer = buffer.dropFirst(chunkSize)
+                    }
+                }
+                super.writeData(buffer)
+                super.close()
+            }
+        } else {
+            Task {
+                for try await chunk in mockStream.stream {
+                    super.writeData(chunk)
+                }
+                super.close()
+            }
         }
-        queue.async(execute: workItem)
-        let result = workItem.wait(timeout: .now() + timeout)
-        if result == .timedOut {
-            response = MockResponse(errorCode: kTimeoutCode, errorMessage: "Request timed out")
-        }
-        let realResponse = Response()
-        realResponse.URLResponse = response.URLResponse
-        realResponse.error = response.error
-        response.getData(mode: mode, stream: stream, chunkSize: chunkSize, response: realResponse)
-        return realResponse
+        return self as Response
     }
 
     // MARK: Private
 
-    private func getDataNonStream(mode _: Mode, response: Response) {
-        if let data {
-            response.data = data
-            return
-        }
-        if let stream = dataStream {
-            let semaphore = DispatchSemaphore(value: 0)
-            Task {
-                var buffer = Data()
-                for try await chunk in stream {
-                    buffer.append(chunk)
-                }
-                self.data = buffer
-                semaphore.signal()
-            }
-            semaphore.wait()
-            response.data = data
-            return
-        }
-    }
-
-    private func getDataStream( // swiftlint:disable:this cyclomatic_complexity
-        mode: Mode,
-        chunkSize: Int?,
-        response: Response
-    ) {
-        switch mode {
-        case .sync:
-
-            let syncResponseStream = SyncResponseStream(chunkSize: chunkSize ?? kDefaultChunkSize)
-            if let data {
-                try! syncResponseStream.write(data) // swiftlint:disable:this force_try
-                syncResponseStream.close()
-            }
-            if let stream = dataStream {
-                Task {
-                    for try await chunk in stream {
-                        try! syncResponseStream.write(chunk) // swiftlint:disable:this force_try
-                    }
-                    syncResponseStream.close()
-                }
-            }
-            response.syncStream = syncResponseStream
-
-        case .async:
-            if var data {
-                response.asyncStream = AsyncStream<Data> { continuation in
-                    let chunkSize = chunkSize ?? kDefaultChunkSize
-                    while data.count >= chunkSize {
-                        continuation.yield(data.prefix(chunkSize))
-                        data = data.dropFirst(chunkSize)
-                    }
-                    if !data.isEmpty {
-                        continuation.yield(data)
-                    }
-                    continuation.finish()
-                }
-            }
-            if let stream = dataStream {
-                response.asyncStream = AsyncStream<Data> { continuation in
-                    Task {
-                        var buffer = Data()
-                        let chunkSize = chunkSize ?? kDefaultChunkSize
-                        for try await chunk in stream {
-                            buffer.append(chunk)
-                            while buffer.count >= chunkSize {
-                                continuation.yield(buffer.prefix(chunkSize))
-                                buffer = buffer.dropFirst(chunkSize)
-                            }
-                        }
-                        if !buffer.isEmpty {
-                            continuation.yield(buffer)
-                        }
-                        continuation.finish()
-                    }
-                }
-            }
-        }
-    }
-
-    private func getData(mode: Mode, stream: Bool, chunkSize: Int?, response: Response) {
-        if data == nil, dataStream == nil {
-            return
-        }
-
-        if !stream {
-            getDataNonStream(mode: mode, response: response)
-        } else {
-            getDataStream(mode: mode, chunkSize: chunkSize, response: response)
-        }
-    }
+    private var mockStream:
+        (stream: AsyncStream<Data>, continuation: AsyncStream<Data>.Continuation) = AsyncStream<Data>.makeStream()
 }
 
 // MARK: - Mock
@@ -433,25 +285,24 @@ public class Mock {
 
     internal static func getResponse(
         request: URLRequest,
-        mode: MockResponse.Mode,
-        stream: Bool,
         chunkSize: Int?
     ) -> Response? {
-        if let url = request.url, let method = request.httpMethod {
+        if let routeCLient = nowUsing, let url = request.url, let method = request.httpMethod {
             let netwotkLocation = url.networkLocation(percentEncoded: true)
             let path = NSString(string: url.path(percentEncoded: true)).standardizingPath
-            if let route = nowUsing?.routeDict[netwotkLocation] {
+            if let route = routeCLient.routeDict[netwotkLocation] {
                 if let function = route.getFunction(
                     path: path,
                     method: HTTPMethod(rawValue: method) ?? .get
                 ) {
-                    return MockResponse.getResponse(
-                        request: request,
-                        mode: mode,
-                        stream: stream,
-                        chunkSize: chunkSize,
-                        function: function
-                    )
+                    var response = Response(url: request.url!, error: URLError(.timedOut))
+                    let workItem = DispatchWorkItem {
+                        response = function(request).toResponse(chunkSize: chunkSize)
+                    }
+
+                    routeCLient.queue.async(execute: workItem)
+                    _ = workItem.wait(timeout: .now() + request.timeoutInterval)
+                    return response
                 }
             }
         }
@@ -464,6 +315,7 @@ public class Mock {
     private static var nowUsing: Mock?
 
     private var routeDict = [NetworkLocation: Route]()
+    private var queue = DispatchQueue(label: "com.mock.network.\(UUID().uuidString)")
 }
 
 // swiftlint:enable legacy_objc_type

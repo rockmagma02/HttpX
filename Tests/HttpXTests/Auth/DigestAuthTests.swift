@@ -21,12 +21,12 @@ final class DigestAuthTests: XCTestCase {
         var request: URLRequest? = URLRequest(url: URL(string: "http://example.com")!)
 
         (request, _) = try auth.authFlow(request: request, lastResponse: nil)
-        let response = Response()
-        response.URLResponse = HTTPURLResponse(
+        let URLResponse = HTTPURLResponse(
             url: URL(string: "http://example.com")!,
             statusCode: 401, httpVersion: nil,
             headerFields: ["Www-Authenticate": "digest realm=\"me@kennethreitz.com\", nonce=\"f84b8428b38019eefd5dbdb8e72bf7d6\", qop=\"auth\", opaque=\"ee1a7a03d8c7032f17dd33b3043db4c6\", algorithm=MD5, stale=FALSE"]
         )
+        let response = Response(HTTPURLResponse: URLResponse!)!
 
         let _ = try auth.authFlow(request: request, lastResponse: response).0
         let _ = try auth.authFlow(request: request, lastResponse: nil).0
@@ -39,12 +39,12 @@ final class DigestAuthTests: XCTestCase {
         var request: URLRequest? = URLRequest(url: URL(string: "http://example.com")!)
 
         (request, _) = try auth.authFlow(request: request, lastResponse: nil)
-        let response = Response()
-        response.URLResponse = HTTPURLResponse(
+        let URLResponse = HTTPURLResponse(
             url: URL(string: "http://example.com")!,
             statusCode: 200, httpVersion: nil,
             headerFields: ["Www-Authenticate": "digest realm=\"test\""]
         )
+        let response = Response(HTTPURLResponse: URLResponse!)!
 
         let (authedRequest, authStop) = try auth.authFlow(request: request, lastResponse: response)
         XCTAssertNil(authedRequest)
@@ -56,12 +56,12 @@ final class DigestAuthTests: XCTestCase {
         var request: URLRequest? = URLRequest(url: URL(string: "http://example.com")!)
 
         (request, _) = try! auth.authFlow(request: request, lastResponse: nil)
-        let response = Response()
-        response.URLResponse = HTTPURLResponse(
+        let URLResponse = HTTPURLResponse(
             url: URL(string: "http://example.com")!,
             statusCode: 401, httpVersion: nil,
             headerFields: ["Www-Authenticate": "invalid"]
         )
+        let response = Response(HTTPURLResponse: URLResponse!)!
 
         let (authedRequest, authStop) = try! auth.authFlow(request: request, lastResponse: response)
         XCTAssertNil(authedRequest)
@@ -80,54 +80,60 @@ final class DigestAuthTests: XCTestCase {
         let auth = DigestAuth(username: "user", password: "pass")
         var request: URLRequest? = URLRequest(url: URL(string: "http://example.com")!)
         (request, _) = try auth.authFlow(request: request, lastResponse: nil)
-        let response = Response()
-        response.URLResponse = HTTPURLResponse(
+        var URLResponse = HTTPURLResponse(
             url: URL(string: "http://example.com")!,
             statusCode: 401, httpVersion: nil,
             headerFields: ["Www-Authenticate": "digest realm=\"me@kennethreitz.com\", nonce=\"f84b8428b38019eefd5dbdb8e72bf7d6\", qop=\"auth\", opaque=\"ee1a7a03d8c7032f17dd33b3043db4c6\", algorithm=MD5-SESS, stale=FALSE"]
         )
+        var response = Response(HTTPURLResponse: URLResponse!)!
         let _ = try auth.authFlow(request: request, lastResponse: response).0
 
-        response.URLResponse = HTTPURLResponse(
+        URLResponse = HTTPURLResponse(
             url: URL(string: "http://example.com")!,
             statusCode: 401, httpVersion: nil,
             headerFields: ["Www-Authenticate": "digest realm=\"me@kennethreitz.com\", nonce=\"f84b8428b38019eefd5dbdb8e72bf7d6\", qop=\"auth\", opaque=\"ee1a7a03d8c7032f17dd33b3043db4c6\", algorithm=SHA, stale=FALSE"]
         )
+        response = Response(HTTPURLResponse: URLResponse!)!
         let _ = try auth.authFlow(request: request, lastResponse: response).0
 
-        response.URLResponse = HTTPURLResponse(
+        URLResponse = HTTPURLResponse(
             url: URL(string: "http://example.com")!,
             statusCode: 401, httpVersion: nil,
             headerFields: ["Www-Authenticate": "digest realm=\"me@kennethreitz.com\", nonce=\"f84b8428b38019eefd5dbdb8e72bf7d6\", qop=\"auth\", opaque=\"ee1a7a03d8c7032f17dd33b3043db4c6\", algorithm=SHA-SESS, stale=FALSE"]
         )
+        response = Response(HTTPURLResponse: URLResponse!)!
         let _ = try auth.authFlow(request: request, lastResponse: response).0
 
-        response.URLResponse = HTTPURLResponse(
+        URLResponse = HTTPURLResponse(
             url: URL(string: "http://example.com")!,
             statusCode: 401, httpVersion: nil,
             headerFields: ["Www-Authenticate": "digest realm=\"me@kennethreitz.com\", nonce=\"f84b8428b38019eefd5dbdb8e72bf7d6\", qop=\"auth\", opaque=\"ee1a7a03d8c7032f17dd33b3043db4c6\", algorithm=SHA-256, stale=FALSE"]
         )
+        response = Response(HTTPURLResponse: URLResponse!)!
         let _ = try auth.authFlow(request: request, lastResponse: response).0
 
-        response.URLResponse = HTTPURLResponse(
+        URLResponse = HTTPURLResponse(
             url: URL(string: "http://example.com")!,
             statusCode: 401, httpVersion: nil,
             headerFields: ["Www-Authenticate": "digest realm=\"me@kennethreitz.com\", nonce=\"f84b8428b38019eefd5dbdb8e72bf7d6\", qop=\"auth\", opaque=\"ee1a7a03d8c7032f17dd33b3043db4c6\", algorithm=SHA-256-SESS, stale=FALSE"]
         )
+        response = Response(HTTPURLResponse: URLResponse!)!
         let _ = try auth.authFlow(request: request, lastResponse: response).0
 
-        response.URLResponse = HTTPURLResponse(
+        URLResponse = HTTPURLResponse(
             url: URL(string: "http://example.com")!,
             statusCode: 401, httpVersion: nil,
             headerFields: ["Www-Authenticate": "digest realm=\"me@kennethreitz.com\", nonce=\"f84b8428b38019eefd5dbdb8e72bf7d6\", qop=\"auth\", opaque=\"ee1a7a03d8c7032f17dd33b3043db4c6\", algorithm=SHA-512, stale=FALSE"]
         )
+        response = Response(HTTPURLResponse: URLResponse!)!
         let _ = try auth.authFlow(request: request, lastResponse: response).0
 
-        response.URLResponse = HTTPURLResponse(
+        URLResponse = HTTPURLResponse(
             url: URL(string: "http://example.com")!,
             statusCode: 401, httpVersion: nil,
             headerFields: ["Www-Authenticate": "digest realm=\"me@kennethreitz.com\", nonce=\"f84b8428b38019eefd5dbdb8e72bf7d6\", qop=\"auth\", opaque=\"ee1a7a03d8c7032f17dd33b3043db4c6\", algorithm=SHA-512-SESS, stale=FALSE"]
         )
+        response = Response(HTTPURLResponse: URLResponse!)!
         let _ = try auth.authFlow(request: request, lastResponse: response).0
     }
 
@@ -136,12 +142,12 @@ final class DigestAuthTests: XCTestCase {
         var request: URLRequest? = URLRequest(url: URL(string: "http://example.com/with/path?query=with")!)
 
         (request, _) = try auth.authFlow(request: request, lastResponse: nil)
-        let response = Response()
-        response.URLResponse = HTTPURLResponse(
+        let URLResponse = HTTPURLResponse(
             url: URL(string: "http://example.com")!,
             statusCode: 401, httpVersion: nil,
             headerFields: ["Www-Authenticate": "digest realm=\"me@kennethreitz.com\", nonce=\"f84b8428b38019eefd5dbdb8e72bf7d6\", qop=\"auth\", opaque=\"ee1a7a03d8c7032f17dd33b3043db4c6\", algorithm=MD5, stale=FALSE"]
         )
+        let response = Response(HTTPURLResponse: URLResponse!)!
 
         let _ = try auth.authFlow(request: request, lastResponse: response).0
     }
@@ -151,12 +157,12 @@ final class DigestAuthTests: XCTestCase {
         var request: URLRequest? = URLRequest(url: URL(string: "http://example.com/with/path?query=with")!)
 
         (request, _) = try auth.authFlow(request: request, lastResponse: nil)
-        let response = Response()
-        response.URLResponse = HTTPURLResponse(
+        let URLResponse = HTTPURLResponse(
             url: URL(string: "http://example.com")!,
             statusCode: 401, httpVersion: nil,
             headerFields: ["Www-Authenticate": "digest realm=\"me@kennethreitz.com\", nonce=\"f84b8428b38019eefd5dbdb8e72bf7d6\", opaque=\"ee1a7a03d8c7032f17dd33b3043db4c6\", algorithm=MD5, stale=FALSE"]
         )
+        let response = Response(HTTPURLResponse: URLResponse!)!
 
         let _ = try auth.authFlow(request: request, lastResponse: response).0
     }
@@ -166,12 +172,12 @@ final class DigestAuthTests: XCTestCase {
         var request: URLRequest? = URLRequest(url: URL(string: "http://example.com/with/path?query=with")!)
 
         (request, _) = try auth.authFlow(request: request, lastResponse: nil)
-        let response = Response()
-        response.URLResponse = HTTPURLResponse(
+        let URLResponse = HTTPURLResponse(
             url: URL(string: "http://example.com")!,
             statusCode: 401, httpVersion: nil,
             headerFields: ["Www-Authenticate": "digest realm=\"me@kennethreitz.com\", nonce=\"f84b8428b38019eefd5dbdb8e72bf7d6\", opaque=\"ee1a7a03d8c7032f17dd33b3043db4c6\", stale=FALSE"]
         )
+        let response = Response(HTTPURLResponse: URLResponse!)!
 
         let _ = try auth.authFlow(request: request, lastResponse: response).0
     }
@@ -181,12 +187,12 @@ final class DigestAuthTests: XCTestCase {
         var request: URLRequest? = URLRequest(url: URL(string: "http://example.com/with/path?query=with")!)
 
         (request, _) = try auth.authFlow(request: request, lastResponse: nil)
-        let response = Response()
-        response.URLResponse = HTTPURLResponse(
+        let URLResponse = HTTPURLResponse(
             url: URL(string: "http://example.com")!,
             statusCode: 401, httpVersion: nil,
             headerFields: ["Www-Authenticate": "digest realm=\"me@kennethreitz.com\", nonce=\"f84b8428b38019eefd5dbdb8e72bf7d6\", opaque=\"ee1a7a03d8c7032f17dd33b3043db4c6\", stale=FALSE, algorithm=MD55"]
         )
+        let response = Response(HTTPURLResponse: URLResponse!)!
 
         XCTAssertThrowsError(try auth.authFlow(request: request, lastResponse: response).0) { error in
             XCTAssertEqual(error as? AuthError, AuthError.invalidDigestAuth())
@@ -198,22 +204,23 @@ final class DigestAuthTests: XCTestCase {
         var request: URLRequest? = URLRequest(url: URL(string: "http://example.com/with/path?query=with")!)
 
         (request, _) = try auth.authFlow(request: request, lastResponse: nil)
-        let response = Response()
-        response.URLResponse = HTTPURLResponse(
+        var URLResponse = HTTPURLResponse(
             url: URL(string: "http://example.com")!,
             statusCode: 401, httpVersion: nil,
             headerFields: ["Www-Authenticate": "digest realm=\"me@kennethreitz.com\", nonce=\"f84b8428b38019eefd5dbdb8e72bf7d6\", qop=\"auth-int\", opaque=\"ee1a7a03d8c7032f17dd33b3043db4c6\", algorithm=MD5, stale=FALSE"]
         )
+        var response = Response(HTTPURLResponse: URLResponse!)!
 
         XCTAssertThrowsError(try auth.authFlow(request: request, lastResponse: response)) {
             XCTAssertEqual($0 as? AuthError, AuthError.qopNotSupported())
         }
 
-        response.URLResponse = HTTPURLResponse(
+        URLResponse = HTTPURLResponse(
             url: URL(string: "http://example.com")!,
             statusCode: 401, httpVersion: nil,
             headerFields: ["Www-Authenticate": "digest realm=\"me@kennethreitz.com\", nonce=\"f84b8428b38019eefd5dbdb8e72bf7d6\", qop=\"invalid\", opaque=\"ee1a7a03d8c7032f17dd33b3043db4c6\", algorithm=MD5, stale=FALSE"]
         )
+        response = Response(HTTPURLResponse: URLResponse!)!
 
         XCTAssertThrowsError(try auth.authFlow(request: request, lastResponse: response)) {
             XCTAssertEqual($0 as? AuthError, AuthError.invalidDigestAuth())
@@ -225,12 +232,12 @@ final class DigestAuthTests: XCTestCase {
         var request: URLRequest? = URLRequest(url: URL(string: "http://example.com/with/path?query=with")!)
 
         (request, _) = try auth.authFlow(request: request, lastResponse: nil)
-        let response = Response()
-        response.URLResponse = HTTPURLResponse(
+        let URLResponse = HTTPURLResponse(
             url: URL(string: "http://example.com")!,
             statusCode: 401, httpVersion: nil,
             headerFields: ["Www-Authenticate": "digest nonce=\"f84b8428b38019eefd5dbdb8e72bf7d6\", qop=\"auth-int\", opaque=\"ee1a7a03d8c7032f17dd33b3043db4c6\", algorithm=MD5, stale=FALSE"]
         )
+        let response = Response(HTTPURLResponse: URLResponse!)!
 
         XCTAssertThrowsError(try auth.authFlow(request: request, lastResponse: response)) {
             XCTAssertEqual($0 as? AuthError, AuthError.invalidDigestAuth())
@@ -242,12 +249,12 @@ final class DigestAuthTests: XCTestCase {
         var request: URLRequest? = URLRequest(url: URL(string: "http://example.com/with/path?query=with")!)
 
         (request, _) = try auth.authFlow(request: request, lastResponse: nil)
-        let response = Response()
-        response.URLResponse = HTTPURLResponse(
+        let URLResponse = HTTPURLResponse(
             url: URL(string: "http://example.com")!,
             statusCode: 401, httpVersion: nil,
             headerFields: ["Www-Authenticate": "digest realm=\"me@kennethreitz.\\com\", nonce=\"f84b8428b38019eefd5dbdb8e72bf7d6\", opaque=\"ee1a7a03d8c7032f17dd33b3043db4c6\", algorithm=MD5, stale=FALSE"]
         )
+        let response = Response(HTTPURLResponse: URLResponse!)!
 
         let _ = try auth.authFlow(request: request, lastResponse: response).0
     }

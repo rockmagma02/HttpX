@@ -19,7 +19,7 @@ class FunctionAuthTests: XCTestCase {
     func testAuthFlow_withValidRequestAndResponse_returnsTrue() {
         // Given
         let expectedRequest = URLRequest(url: URL(string: "https://example.com")!)
-        let response = Response()
+        let response = Response(url: expectedRequest.url!, statusCode: 200)!
         let authFunction: (URLRequest?, Response?) -> (URLRequest, Bool) = { request, _ in
             (request!, true)
         }

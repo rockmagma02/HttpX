@@ -100,23 +100,13 @@ final class BaseClientTests: XCTestCase {
 
         request = URLRequest(url: URL(string: "https://example.com")!)
         request.httpMethod = "GET"
-        response = Response()
-        response.URLResponse = HTTPURLResponse(url: URL(string: "https://example.com")!, statusCode: 303, httpVersion: nil, headerFields: nil)
+        response = Response(url: request.url!, statusCode: 303)!
         XCTAssertEqual(try client.redirectMethod(request: request, response: response), .get)
 
         request = URLRequest(url: URL(string: "https://example.com")!)
         request.httpMethod = "DELETE"
-        response = Response()
-        response.URLResponse = HTTPURLResponse(url: URL(string: "https://example.com")!, statusCode: 301, httpVersion: nil, headerFields: nil)
+        response = Response(url: request.url!, statusCode: 301)!
         XCTAssertEqual(try client.redirectMethod(request: request, response: response), .get)
-
-        request = URLRequest(url: URL(string: "https://example.com")!)
-        request.httpMethod = "POST"
-        response = Response()
-        response.URLResponse = URLResponse()
-        XCTAssertThrowsError(try client.redirectMethod(request: request, response: response)) {
-            XCTAssertEqual($0 as? HttpXError, HttpXError.invalidResponse())
-        }
     }
 
     func testRedirectURL() throws {
@@ -128,8 +118,7 @@ final class BaseClientTests: XCTestCase {
         // empty location
         request = URLRequest(url: URL(string: "https://example.com")!)
         request.httpMethod = "GET"
-        response = Response()
-        response.URLResponse = HTTPURLResponse(url: URL(string: "https://example.com")!, statusCode: 301, httpVersion: nil, headerFields: ["Location": ""])
+        response = Response(url: request.url!, statusCode: 301, headers: ["Location": ""])!
         XCTAssertThrowsError(try client.redirectURL(request: request, response: response)) {
             XCTAssertEqual($0 as? HttpXError, HttpXError.redirectError())
         }
@@ -137,24 +126,21 @@ final class BaseClientTests: XCTestCase {
         // empty host
         request = URLRequest(url: URL(string: "http://example.com")!)
         request.httpMethod = "GET"
-        response = Response()
-        response.URLResponse = HTTPURLResponse(url: URL(string: "https://example.com")!, statusCode: 301, httpVersion: nil, headerFields: ["Location": "https:?query=value"])
+        response = Response(url: request.url!, statusCode: 301, headers: ["Location": "https:?query=value"])!
         newURL = try client.redirectURL(request: request, response: response)
         XCTAssertEqual(newURL.absoluteString, "https://example.com?query=value")
 
         // got fragment
         request = URLRequest(url: URL(string: "http://www.example.com#fragment")!)
         request.httpMethod = "GET"
-        response = Response()
-        response.URLResponse = HTTPURLResponse(url: URL(string: "https://example.com")!, statusCode: 301, httpVersion: nil, headerFields: ["Location": "https://example.com"])
+        response = Response(url: request.url!, statusCode: 301, headers: ["Location": "https://example.com"])!
         newURL = try client.redirectURL(request: request, response: response)
         XCTAssertEqual(newURL.absoluteString, "https://example.com#fragment")
 
         // no Location
         request = URLRequest(url: URL(string: "http://example.com")!)
         request.httpMethod = "GET"
-        response = Response()
-        response.URLResponse = HTTPURLResponse(url: URL(string: "https://example.com")!, statusCode: 301, httpVersion: nil, headerFields: nil)
+        response = Response(url: request.url!, statusCode: 301)!
         XCTAssertThrowsError(try client.redirectURL(request: request, response: response)) {
             XCTAssertEqual($0 as? HttpXError, HttpXError.invalidResponse())
         }

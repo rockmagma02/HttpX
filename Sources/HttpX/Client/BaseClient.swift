@@ -74,8 +74,9 @@ public class BaseClient {
             cookieStorage.setCookie(cookie)
         }
 
+        let delegate = HttpXDelegate()
         configuration.httpCookieStorage = cookieStorage
-        session = URLSession(configuration: configuration)
+        session = URLSession(configuration: configuration, delegate: delegate, delegateQueue: nil)
     }
 
     deinit {}
@@ -270,29 +271,28 @@ public class BaseClient {
     }
 
     internal func redirectMethod(request: URLRequest, response: Response) throws -> HTTPMethod {
-        if let methodString = request.httpMethod, let stateCode = response.URLResponse?.status.0 {
-            let seeOther = 303
-            let found = 302
-            let movedPermanently = 301
+        let methodString = request.httpMethod!
+        let statusCode = response.statusCode
+        let seeOther = 303
+        let found = 302
+        let movedPermanently = 301
 
-            var method = HTTPMethod(rawValue: methodString)!
-            if stateCode == seeOther, method != .head { // See Other
-                method = .get
-            }
-            if stateCode == found, method != .head { // Found
-                method = .get
-            }
-            if stateCode == movedPermanently, method != .post, method != .head { // Moved Permanently
-                method = .get
-            }
-
-            return method
+        var method = HTTPMethod(rawValue: methodString)!
+        if statusCode == seeOther, method != .head { // See Other
+            method = .get
         }
-        throw HttpXError.invalidResponse(message: "The response has no status code.")
+        if statusCode == found, method != .head { // Found
+            method = .get
+        }
+        if statusCode == movedPermanently, method != .post, method != .head { // Moved Permanently
+            method = .get
+        }
+
+        return method
     }
 
     internal func redirectURL(request: URLRequest, response: Response) throws -> URL {
-        if let location = response.URLResponse?.getHeaderValue(forHTTPHeaderField: "Location") {
+        if let location = response.value(forHTTPHeaderField: "Location") {
             guard var newURL = URL(string: location) else {
                 throw HttpXError.redirectError(message: "The Redirect URL is invalid.")
             }

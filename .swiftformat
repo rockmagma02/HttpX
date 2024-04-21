@@ -81,5 +81,5 @@
 --wraptypealiases preserve
 --xcodeindentation disabled
 --yodaswap always
---disable redundantInternal
---enable acronyms,blankLinesBetweenImports,blockComments,docComments,isEmpty,markTypes,noExplicitOwnership,organizeDeclarations,sortSwitchCases,wrapConditionalBodies,wrapEnumCases,wrapMultilineConditionalAssignment,wrapSwitchCases
+--disable redundantInternal,wrapSwitchCases
+--enable acronyms,blankLinesBetweenImports,blockComments,docComments,isEmpty,markTypes,noExplicitOwnership,organizeDeclarations,sortSwitchCases,wrapConditionalBodies,wrapEnumCases,wrapMultilineConditionalAssignment

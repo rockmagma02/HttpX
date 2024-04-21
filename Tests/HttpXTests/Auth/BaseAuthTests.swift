@@ -34,7 +34,7 @@ final class BaseAuthTests: XCTestCase {
     func testSyncAuthFlowWithResponseBody() throws {
         let mockAuth = MockBaseAuth(needRequestBody: false, needResponseBody: true)
         let request = URLRequest(url: URL(string: "https://example.com")!)
-        let lastResponse = MockResponse()
+        let lastResponse = MockResponse(url: request.url!, statusCode: 200)!
 
         let (_, authDone) = try mockAuth.syncAuthFlow(request: request, lastResponse: lastResponse)
 
@@ -57,7 +57,7 @@ final class BaseAuthTests: XCTestCase {
     func testAsyncAuthFlowWithResponseBody() async throws {
         let mockAuth = MockBaseAuth(needRequestBody: false, needResponseBody: true)
         let request = URLRequest(url: URL(string: "https://example.com")!)
-        let lastResponse = MockResponse()
+        let lastResponse = MockResponse(url: request.url!, statusCode: 200)!
 
         let (_, authDone) = try await mockAuth.asyncAuthFlow(request: request, lastResponse: lastResponse)
 
@@ -95,11 +95,13 @@ private class MockResponse: Response {
     var didReadAllFormSyncStream = false
     var didReadAllFormAsyncStream = false
 
-    override func readAllFormSyncStream() {
+    override func getData() -> Data {
         didReadAllFormSyncStream = true
+        return Data()
     }
 
-    override func readAllFormAsyncStream() async {
+    override func getData() async throws -> Data {
         didReadAllFormAsyncStream = true
+        return Data()
     }
 }

@@ -25,6 +25,7 @@ func mockStop() {
 func mock() {
     let bundle = Bundle.module
     let network = "httpbin.org:443"
+    let queue = DispatchQueue(label: "http-bin.mock\(UUID().uuidString)")
 
     Mock.start(nil)
     let mock = Mock.getNowUsing()!
@@ -37,12 +38,14 @@ func mock() {
         }
         let results: [String: Any] = ["args": args]
         let body = try! JSONSerialization.data(withJSONObject: results, options: [])
-        return MockResponse(
-            request: request,
-            data: body,
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: [:]
-        )
+        )!
+        response.writeData(body)
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/get", method: .get) { request, _ in
@@ -53,12 +56,14 @@ func mock() {
         }
         let results: [String: Any] = ["args": args]
         let body = try! JSONSerialization.data(withJSONObject: results, options: [])
-        return MockResponse(
-            request: request,
-            data: body,
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: [:]
-        )
+        )!
+        response.writeData(body)
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/patch", method: .patch) { request, _ in
@@ -69,12 +74,14 @@ func mock() {
         }
         let results: [String: Any] = ["args": args]
         let body = try! JSONSerialization.data(withJSONObject: results, options: [])
-        return MockResponse(
-            request: request,
-            data: body,
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: [:]
-        )
+        )!
+        response.writeData(body)
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/post", method: .post) { request, _ in
@@ -85,12 +92,14 @@ func mock() {
         }
         let results: [String: Any] = ["args": args]
         let body = try! JSONSerialization.data(withJSONObject: results, options: [])
-        return MockResponse(
-            request: request,
-            data: body,
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: [:]
-        )
+        )!
+        response.writeData(body)
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/put", method: .put) { request, _ in
@@ -101,12 +110,14 @@ func mock() {
         }
         let results: [String: Any] = ["args": args]
         let body = try! JSONSerialization.data(withJSONObject: results, options: [])
-        return MockResponse(
-            request: request,
-            data: body,
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: [:]
-        )
+        )!
+        response.writeData(body)
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/basic-auth") { request, paths in
@@ -115,19 +126,21 @@ func mock() {
 
         let expectAuth = "Basic " + Data("\(username):\(password)".utf8).base64EncodedString()
         if let auth = request.value(forHTTPHeaderField: "Authorization"), auth == expectAuth {
-            return MockResponse(
-                request: request,
-                data: nil,
+            let response = MockResponse(
+                url: request.url!,
                 statusCode: 200,
                 headers: [:]
-            )
+            )!
+            response.close()
+            return response
         } else {
-            return MockResponse(
-                request: request,
-                data: nil,
+            let response = MockResponse(
+                url: request.url!,
                 statusCode: 401,
                 headers: [:]
-            )
+            )!
+            response.close()
+            return response
         }
     }
 
@@ -137,37 +150,41 @@ func mock() {
 
         let expectAuth = "Basic " + Data("\(username):\(password)".utf8).base64EncodedString()
         if let auth = request.value(forHTTPHeaderField: "Authorization"), auth == expectAuth {
-            return MockResponse(
-                request: request,
-                data: nil,
+            let response = MockResponse(
+                url: request.url!,
                 statusCode: 200,
                 headers: [:]
-            )
+            )!
+            response.close()
+            return response
         } else {
-            return MockResponse(
-                request: request,
-                data: nil,
+            let response = MockResponse(
+                url: request.url!,
                 statusCode: 404,
                 headers: [:]
-            )
+            )!
+            response.close()
+            return response
         }
     }
 
     mock.addRoute(networkLocation: network, path: "/bearer") { request, _ in
         if let _ = request.value(forHTTPHeaderField: "Authorization") {
-            MockResponse(
-                request: request,
-                data: nil,
+            let response = MockResponse(
+                url: request.url!,
                 statusCode: 200,
                 headers: [:]
-            )
+            )!
+            response.close()
+            return response
         } else {
-            MockResponse(
-                request: request,
-                data: nil,
+            let response = MockResponse(
+                url: request.url!,
                 statusCode: 401,
                 headers: [:]
-            )
+            )!
+            response.close()
+            return response
         }
     }
 
@@ -199,37 +216,41 @@ func mock() {
             let response = md5(digestData.joined(separator: ":"))
 
             if response == authDict["response"]!.replacingOccurrences(of: "\"", with: "") {
-                return MockResponse(
-                    request: request,
-                    data: nil,
+                let response = MockResponse(
+                    url: request.url!,
                     statusCode: 200,
                     headers: [:]
-                )
+                )!
+                response.close()
+                return response
             } else {
-                return MockResponse(
-                    request: request,
-                    data: nil,
+                let response = MockResponse(
+                    url: request.url!,
                     statusCode: 401,
                     headers: [:]
-                )
+                )!
+                response.close()
+                return response
             }
         } else {
-            return MockResponse(
-                request: request,
-                data: nil,
+            let response = MockResponse(
+                url: request.url!,
                 statusCode: 401,
                 headers: ["Www-Authenticate": "Digest realm=\"me@kennethreitz.com\", nonce=\"217835d0c4eab341b22724d842df4640\", qop=\"auth\", opaque=\"1516e76fc8027c4d6cd60a8d7071bd07\", algorithm=MD5, stale=FALS"]
-            )
+            )!
+            response.close()
+            return response
         }
     }
 
     mock.addRoute(networkLocation: network, path: "/status") { request, paths in
-        MockResponse(
-            request: request,
-            data: nil,
+        let response = MockResponse(
+            url: request.url!,
             statusCode: Int(paths[0])!,
             headers: [:]
-        )
+        )!
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/headers") { request, _ in
@@ -243,12 +264,14 @@ func mock() {
             "headers": newHeaders,
         ]
 
-        return MockResponse(
-            request: request,
-            data: try! JSONSerialization.data(withJSONObject: json, options: []),
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: headers
-        )
+        )!
+        response.writeData(try! JSONSerialization.data(withJSONObject: json, options: []))
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/user-agent") { request, _ in
@@ -258,30 +281,34 @@ func mock() {
             "user-agent": userAgent,
         ]
 
-        return MockResponse(
-            request: request,
-            data: try! JSONSerialization.data(withJSONObject: json, options: []),
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: [:]
-        )
+        )!
+        response.writeData(try! JSONSerialization.data(withJSONObject: json, options: []))
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/cache") { request, paths in
-        MockResponse(
-            request: request,
-            data: nil,
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: ["Cache-Control": "public, max-age=\(paths[0])"]
-        )
+        )!
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/etag") { request, paths in
-        MockResponse(
-            request: request,
-            data: nil,
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: ["Etag": paths[0]]
-        )
+        )!
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/response-headers") { request, _ in
@@ -289,12 +316,13 @@ func mock() {
         let headers = components?.queryItems?.reduce(into: [String: String]()) { result, item in
             result[item.name] = item.value
         }
-        return MockResponse(
-            request: request,
-            data: nil,
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: headers!
-        )
+        )!
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/response-headers", method: .post) { request, _ in
@@ -302,12 +330,13 @@ func mock() {
         let headers = components?.queryItems?.reduce(into: [String: String]()) { result, item in
             result[item.name] = item.value
         }
-        return MockResponse(
-            request: request,
-            data: nil,
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: headers!
-        )
+        )!
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/brotli", method: .get) { request, _ in
@@ -315,130 +344,152 @@ func mock() {
             "brotli": true,
         ]
 
-        return MockResponse(
-            request: request,
-            data: try! JSONSerialization.data(withJSONObject: json, options: []),
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: ["Content-Encoding": "br"]
-        )
+        )!
+        response.writeData(try! JSONSerialization.data(withJSONObject: json, options: []))
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/deflate", method: .get) { request, _ in
         let json: [String: Any] = [
             "deflated": true,
         ]
-        return MockResponse(
-            request: request,
-            data: try! JSONSerialization.data(withJSONObject: json, options: []),
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: ["Content-Encoding": "deflate"]
-        )
+        )!
+        response.writeData(try! JSONSerialization.data(withJSONObject: json, options: []))
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/deny", method: .get) { request, _ in
-        MockResponse(
-            request: request,
-            data: "YOU SHOULDN'T BE HERE, GO AWAY!".data(using: .utf8),
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: ["Content-Type": "text/plain"]
-        )
+        )!
+        response.writeData("YOU SHOULDN'T BE HERE, GO AWAY!".data(using: .utf8)!)
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/encoding/utf8", method: .get) { request, _ in
-        MockResponse(
-            request: request,
-            data: "<html><body>👋 UTF-8 encoded</body></html>".data(using: .utf8),
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: ["Content-Type": "text/html; charset=utf-8"]
-        )
+        )!
+        response.writeData("<html><body>👋 UTF-8 encoded</body></html>".data(using: .utf8)!)
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/gzip", method: .get) { request, _ in
         let json: [String: Any] = [
             "gzipped": true,
         ]
-        return MockResponse(
-            request: request,
-            data: try! JSONSerialization.data(withJSONObject: json, options: []),
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: ["Content-Encoding": "gzip"]
-        )
+        )!
+        response.writeData(try! JSONSerialization.data(withJSONObject: json, options: []))
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/html", method: .get) { request, _ in
-        MockResponse(
-            request: request,
-            data: "<html><body>👋 UTF-8 encoded</body></html>".data(using: .utf8),
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: ["Content-Type": "text/html; charset=utf-8"]
-        )
+        )!
+        response.writeData("<html><body>👋 UTF-8 encoded</body></html>".data(using: .utf8)!)
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/json", method: .get) { request, _ in
         let json: [String: Any] = [
             "json": true,
         ]
-        return MockResponse(
-            request: request,
-            data: try! JSONSerialization.data(withJSONObject: json, options: []),
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: ["Content-Type": "application/json"]
-        )
+        )!
+        response.writeData(try! JSONSerialization.data(withJSONObject: json, options: []))
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/robots.txt", method: .get) { request, _ in
-        MockResponse(
-            request: request,
-            data: "User-agent: \(request.value(forHTTPHeaderField: "User-agent") ?? "*")".data(using: .utf8),
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: ["Content-Type": "text/plain"]
-        )
+        )!
+        response.writeData("User-agent: \(request.value(forHTTPHeaderField: "User-agent") ?? "*")".data(using: .utf8)!)
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/xml", method: .get) { request, _ in
-        MockResponse(
-            request: request,
-            data:
-            """
-            <?xml version="1.0" encoding="UTF-8"?>
-            .....
-            </slideshow>
-            """.data(using: .utf8),
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: ["Content-Type": "application/xml"]
-        )
+        )!
+        response.writeData("""
+        <?xml version="1.0" encoding="UTF-8"?>
+        .....
+        </slideshow>
+        """.data(using: .utf8)!)
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/base64") { request, paths in
         let base64 = paths[0]
-        return MockResponse(
-            request: request,
-            data: Data(base64Encoded: base64),
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: [:]
-        )
+        )!
+        response.writeData(Data(base64Encoded: base64)!)
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/bytes") { request, paths in
         let length = Int(paths[0])!
-        return MockResponse(
-            request: request,
-            data: Data((0 ..< length).map { _ in UInt8.random(in: 0 ... UInt8.max) }),
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: ["Content-Length": String(length)]
-        )
+        )!
+        response.writeData(Data((0 ..< length).map { _ in UInt8.random(in: 0 ... UInt8.max) }))
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/delay") { request, paths in
         if let times = Int(paths[0]) {
             sleep(UInt32(times))
         }
-        return MockResponse(
-            request: request,
-            data: nil,
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: [:]
-        )
+        )!
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/drip") { request, _ in
@@ -452,17 +503,18 @@ func mock() {
 
         let halfbytes = Int(numbytes / 2)
         let restbytes = numbytes - halfbytes
-        return MockResponse(
-            request: request,
-            dataStream: .init { continuation in
-                continuation.yield(Data(repeating: 0, count: halfbytes))
-                sleep(UInt32(duration))
-                continuation.yield(Data(repeating: 0, count: restbytes))
-                continuation.finish()
-            },
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: [:]
-        )
+        )!
+        queue.async {
+            response.writeData(Data(repeating: 0, count: halfbytes))
+            sleep(UInt32(duration))
+            response.writeData(Data(repeating: 0, count: restbytes))
+            response.close()
+        }
+        return response
     }
 
     // <html><head> < title > Links </ title ></ head >< body >< a href = '/links/5/0'>0</a> <a href = '/links/5/1'>1</a> <a href = '/links/5/2'>2</a> <a href = '/links/5/3'>3</a> <a href = '/links/5/4'>4</a> </body ></ html>
@@ -473,151 +525,175 @@ func mock() {
         let links = (0 ..< n).map { i in
             "<a href='/links/\(n)/\(i)'>\(i)</a>"
         }.joined(separator: " ")
-        return MockResponse(
-            request: request,
-            data: "<html><head><title>Links</title></head><body>\(links)</body></html>".data(using: .utf8),
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: [:]
-        )
+        )!
+        response.writeData("<html><head><title>Links</title></head><body>\(links)</body></html>".data(using: .utf8)!)
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/stream-bytes") { request, paths in
         let numbytes = Int(paths[0])!
-        return MockResponse(
-            request: request,
-            data: Data(repeating: 0, count: numbytes),
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: [:]
-        )
+        )!
+        response.writeData(Data(repeating: 0, count: numbytes))
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/range") { request, paths in
         let numbytes = Int(paths[0])!
-        return MockResponse(
-            request: request,
-            data: Data(repeating: 0, count: numbytes),
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: [:]
-        )
+        )!
+        response.writeData(Data(repeating: 0, count: numbytes))
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/uuid", method: .get) { request, _ in
         let json: [String: Any] = [
             "uuid": UUID().uuidString,
         ]
-        return MockResponse(
-            request: request,
-            data: try! JSONSerialization.data(withJSONObject: json, options: []),
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: [:]
-        )
+        )!
+        response.writeData(try! JSONSerialization.data(withJSONObject: json, options: []))
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/image", method: .get) { request, _ in
         let webp = bundle.url(forResource: "testImage", withExtension: "webp")
-        return MockResponse(
-            request: request,
-            data: InputStream(url: webp!)?.readAllData(),
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: ["Content-Type": "image/webp"]
-        )
+        )!
+        response.writeData(InputStream(url: webp!)!.readAllData())
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/image/jpeg", method: .get) { request, _ in
         let jpg = bundle.url(forResource: "testImage", withExtension: "jpg")
-        return MockResponse(
-            request: request,
-            data: InputStream(url: jpg!)?.readAllData(),
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: ["Content-Type": "image/jpeg"]
-        )
+        )!
+        response.writeData(InputStream(url: jpg!)!.readAllData())
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/image/png", method: .get) { request, _ in
         let png = bundle.url(forResource: "testImage", withExtension: "png")
-        return MockResponse(
-            request: request,
-            data: InputStream(url: png!)?.readAllData(),
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: ["Content-Type": "image/png"]
-        )
+        )!
+        response.writeData(InputStream(url: png!)!.readAllData())
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/image/svg", method: .get) { request, _ in
         let svg = bundle.url(forResource: "testImage", withExtension: "svg")
-        return MockResponse(
-            request: request,
-            data: InputStream(url: svg!)?.readAllData(),
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: ["Content-Type": "image/svg+xml"]
-        )
+        )!
+        response.writeData(InputStream(url: svg!)!.readAllData())
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/absolute-redirect") { request, paths in
         let nums = Int(paths[0])!
-        return MockResponse(
-            request: request,
-            data: nil,
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 302,
             headers: ["Location": "http://httpbin.org/absolute-redirect/\(nums - 1)"]
-        )
+        )!
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: "httpbin.org:80", path: "/absolute-redirect") { request, paths in
         let nums = Int(paths[0])!
         if nums <= 1 {
-            return MockResponse(
-                request: request,
-                data: nil,
+            let response = MockResponse(
+                url: request.url!,
                 statusCode: 302,
                 headers: ["Location": "http://httpbin.org/get"]
-            )
+            )!
+            response.close()
+            return response
         }
-        return MockResponse(
-            request: request,
-            data: nil,
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 302,
             headers: ["Location": "http://httpbin.org/absolute-redirect/\(nums - 1)"]
-        )
+        )!
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: "httpbin.org:80", path: "/get", method: .get) { request, _ in
         let results: [String: Any] = ["args": []]
         let body = try! JSONSerialization.data(withJSONObject: results, options: [])
-        return MockResponse(
-            request: request,
-            data: body,
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 200,
             headers: [:]
-        )
+        )!
+        response.writeData(body)
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/redirect-to") { request, _ in
         let components = URLComponents(url: request.url!, resolvingAgainstBaseURL: true)!
         let location = components.queryItems!.first(where: { $0.name == "url" })!.value!
-        return MockResponse(
-            request: request,
-            data: nil,
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 302,
             headers: ["Location": location]
-        )
+        )!
+        response.close()
+        return response
     }
 
     mock.addRoute(networkLocation: network, path: "/relative-redirect") { request, paths in
         let nums = Int(paths[0])!
         if nums <= 1 {
-            return MockResponse(
-                request: request,
-                data: nil,
+            let response = MockResponse(
+                url: request.url!,
                 statusCode: 302,
                 headers: ["Location": "/get"]
-            )
+            )!
+            response.close()
+            return response
         }
-        return MockResponse(
-            request: request,
-            data: nil,
+        let response = MockResponse(
+            url: request.url!,
             statusCode: 302,
             headers: ["Location": "/relative-redirect/\(nums - 1)"]
-        )
+        )!
+        response.close()
+        return response
     }
 }

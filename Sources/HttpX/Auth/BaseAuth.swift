@@ -65,7 +65,7 @@ extension BaseAuth {
         }
 
         if needResponseBody, lastResponse != nil {
-            lastResponse!.readAllFormSyncStream()
+            _ = lastResponse?.getData()
         }
 
         return try authFlow(request: request, lastResponse: lastResponse)
@@ -86,7 +86,7 @@ extension BaseAuth {
         }
 
         if needResponseBody, lastResponse != nil {
-            await lastResponse!.readAllFormAsyncStream()
+            _ = try await lastResponse?.getData()
         }
 
         return try authFlow(request: request, lastResponse: lastResponse)
