@@ -70,7 +70,7 @@ final class SyncClientTests: XCTestCase {
             url: URLType.string("/get"),
             auth: AuthType.class(NonAuth())
         )
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
+        XCTAssertEqual(response.statusCode, 200)
     }
 
     func testMaxRedirect() throws {
@@ -87,7 +87,7 @@ final class SyncClientTests: XCTestCase {
                 { $0.httpBody?.append("request".data(using: .utf8)!) },
             ],
             response: [
-                { $0.data?.append("response".data(using: .utf8)!) },
+                { $0.defaultEncoding = .iso2022JP },
             ]
         )
         client.setEventHooks(eventHooks)
@@ -96,15 +96,14 @@ final class SyncClientTests: XCTestCase {
             method: .get,
             url: URLType.string("/get")
         )
-        XCTAssertTrue(String(data: response.data!, encoding: .utf8)!.contains("response"))
+        XCTAssertTrue(response.defaultEncoding == .iso2022JP)
     }
 
     func testSendSingleRequest() throws {
         // Timeout
         XCTAssertThrowsError(
             try client.sendSingleRequest(
-                request: URLRequest(url: URL(string: "https://httpbin.org/delay/10")!, timeoutInterval: 1),
-                stream: (true, nil)
+                request: URLRequest(url: URL(string: "https://httpbin.org/delay/10")!, timeoutInterval: 1)
             )
         ) { error in
             XCTAssertEqual(error as? HttpXError, HttpXError.networkError(message: "", code: -1_001))

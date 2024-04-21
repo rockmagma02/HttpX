@@ -73,7 +73,7 @@ final class AsyncClientTests: XCTestCase {
             url: URLType.string("/get"),
             auth: AuthType.class(NonAuth())
         )
-        XCTAssertEqual(response.URLResponse?.status.0, 200)
+        XCTAssertEqual(response.statusCode, 200)
     }
 
     func testMaxRedirect() async throws {
@@ -93,7 +93,7 @@ final class AsyncClientTests: XCTestCase {
                 { $0.httpBody?.append("request".data(using: .utf8)!) },
             ],
             response: [
-                { $0.data?.append("response".data(using: .utf8)!) },
+                { $0.defaultEncoding = .iso2022JP },
             ]
         )
         client.setEventHooks(eventHooks)
@@ -102,22 +102,7 @@ final class AsyncClientTests: XCTestCase {
             method: .post,
             url: URLType.string("/post")
         )
-        XCTAssertTrue(String(data: response.data!, encoding: .utf8)!.contains("response"))
-    }
-
-    func testSendSingleRequest() async throws {
-        // Timeout
-        let expectation = expectation(description: "timeout")
-        do {
-            _ = try await client.sendSingleRequest(
-                request: URLRequest(url: URL(string: "https://httpbin.org/delay/10")!, timeoutInterval: 1),
-                stream: (false, nil)
-            )
-        } catch {
-            XCTAssertEqual(error as? HttpXError, HttpXError.networkError(message: "", code: -1_001))
-            expectation.fulfill()
-        }
-        await fulfillment(of: [expectation], timeout: 5)
+        XCTAssertTrue(response.defaultEncoding == .iso2022JP)
     }
 
     func testSendSingleRequestAsync() async throws {
@@ -125,8 +110,7 @@ final class AsyncClientTests: XCTestCase {
         let expectation = expectation(description: "timeout")
         do {
             _ = try await client.sendSingleRequest(
-                request: URLRequest(url: URL(string: "https://httpbin.org/delay/10")!, timeoutInterval: 1),
-                stream: (true, nil)
+                request: URLRequest(url: URL(string: "https://httpbin.org/delay/10")!, timeoutInterval: 1)
             )
         } catch {
             XCTAssertEqual(error as? HttpXError, HttpXError.networkError(message: "", code: -1_001))

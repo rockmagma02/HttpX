@@ -18,109 +18,109 @@ import XCTest
 
 final class ResponseTests: XCTestCase {
     func testResponseInit() {
-        let response = ResponseNew(url: URL(string: "www.example.com")!, statusCode: 200, headers: [:])!
+        let response = Response(url: URL(string: "www.example.com")!, statusCode: 200, headers: [:])!
         XCTAssertEqual(response.url, URL(string: "www.example.com")!)
         XCTAssertEqual(response.statusCode, 200)
         XCTAssertEqual(response.allHeaderFields, [:])
 
         // wrong status code
-        XCTAssertNil(ResponseNew(url: URL(string: "www.example.com")!, statusCode: 1_000, headers: [:]))
+        XCTAssertNil(Response(url: URL(string: "www.example.com")!, statusCode: 1_000, headers: [:]))
 
         // init with HTTPURLResponse
         let httpURLResponse = HTTPURLResponse(
             url: URL(string: "www.example.com")!,
             statusCode: 200, httpVersion: nil, headerFields: ["key": "value"]
         )!
-        let response2 = ResponseNew(HTTPURLResponse: httpURLResponse)!
+        let response2 = Response(HTTPURLResponse: httpURLResponse)!
         XCTAssertEqual(response2.url, URL(string: "www.example.com")!)
         XCTAssertEqual(response2.statusCode, 200)
         XCTAssertEqual(response2.allHeaderFields, ["Key": "value"])
 
         // init with error
         let error = HttpXError.invalidURL(message: "")
-        let response3 = ResponseNew(url: URL(string: "www.example.com")!, error: error)
+        let response3 = Response(url: URL(string: "www.example.com")!, error: error)
         XCTAssertEqual(response3.error as? HttpXError, error)
         XCTAssertEqual(response3.url, URL(string: "www.example.com")!)
         XCTAssertEqual(response3.statusCode, -1)
     }
 
     func testExpectedContentLength() {
-        var response = ResponseNew(url: URL(string: "www.example.com")!, statusCode: 200, headers: [:])!
+        var response = Response(url: URL(string: "www.example.com")!, statusCode: 200, headers: [:])!
         XCTAssertNil(response.expectedContentLength)
 
-        response = ResponseNew(url: URL(string: "www.example.com")!, statusCode: 200, headers: ["Content-Length": "100"])!
+        response = Response(url: URL(string: "www.example.com")!, statusCode: 200, headers: ["Content-Length": "100"])!
         XCTAssertEqual(response.expectedContentLength, 100)
     }
 
     func testSuggestFilename() {
-        var response = ResponseNew(url: URL(string: "www.example.com")!, statusCode: 200, headers: [:])!
+        var response = Response(url: URL(string: "www.example.com")!, statusCode: 200, headers: [:])!
         XCTAssertNil(response.suggestedFilename)
 
-        response = ResponseNew(url: URL(string: "www.example.com")!, statusCode: 200, headers: ["Content-Disposition": "attachment; filename=\"example.txt\""])!
+        response = Response(url: URL(string: "www.example.com")!, statusCode: 200, headers: ["Content-Disposition": "attachment; filename=\"example.txt\""])!
         XCTAssertEqual(response.suggestedFilename, "example.txt")
     }
 
     func testMimeType() {
-        var response = ResponseNew(url: URL(string: "www.example.com")!, statusCode: 200, headers: [:])!
+        var response = Response(url: URL(string: "www.example.com")!, statusCode: 200, headers: [:])!
         XCTAssertNil(response.mimeType)
 
-        response = ResponseNew(url: URL(string: "www.example.com")!, statusCode: 200, headers: ["Content-Type": "text/html"])!
+        response = Response(url: URL(string: "www.example.com")!, statusCode: 200, headers: ["Content-Type": "text/html"])!
         XCTAssertEqual(response.mimeType, "text/html")
     }
 
     func testTextEncodingName() {
-        var response = ResponseNew(url: URL(string: "www.example.com")!, statusCode: 200, headers: [:])!
+        var response = Response(url: URL(string: "www.example.com")!, statusCode: 200, headers: [:])!
         XCTAssertNil(response.textEncodingName)
 
-        response = ResponseNew(url: URL(string: "www.example.com")!, statusCode: 200, headers: ["Content-Type": "text/html; charset=utf-8"])!
+        response = Response(url: URL(string: "www.example.com")!, statusCode: 200, headers: ["Content-Type": "text/html; charset=utf-8"])!
         XCTAssertEqual(response.textEncodingName, "utf-8")
         XCTAssertEqual(response.defaultEncoding, String.Encoding.utf8)
     }
 
     func testHasRedirectLocation() {
-        var response = ResponseNew(url: URL(string: "www.example.com")!, statusCode: 200, headers: [:])!
+        var response = Response(url: URL(string: "www.example.com")!, statusCode: 200, headers: [:])!
         XCTAssertFalse(response.hasRedirectLocation)
 
-        response = ResponseNew(url: URL(string: "www.example.com")!, statusCode: 301, headers: ["Location": "www.example.com"])!
+        response = Response(url: URL(string: "www.example.com")!, statusCode: 301, headers: ["Location": "www.example.com"])!
         XCTAssertTrue(response.hasRedirectLocation)
     }
 
     func testDescription() {
-        let response = ResponseNew(url: URL(string: "http://example.com")!, error: HttpXError.invalidURL())
+        let response = Response(url: URL(string: "http://example.com")!, error: HttpXError.invalidURL())
         XCTAssertEqual(response.description, "<Response [Error: invalidURL(message: \"\")]>")
 
-        let response2 = ResponseNew(url: URL(string: "http://example.com")!, statusCode: 200, headers: [:])
+        let response2 = Response(url: URL(string: "http://example.com")!, statusCode: 200, headers: [:])
         XCTAssertEqual(response2?.description, "<Response [200 no error]>")
     }
 
     func testStatusCodeClassify() {
-        var response = ResponseNew(url: URL(string: "http://example.com")!, statusCode: 100, headers: [:])!
+        var response = Response(url: URL(string: "http://example.com")!, statusCode: 100, headers: [:])!
         XCTAssertTrue(response.isInformational)
         XCTAssertFalse(response.isSuccess)
         XCTAssertFalse(response.isError)
 
-        response = ResponseNew(url: URL(string: "http://example.com")!, statusCode: 200, headers: [:])!
+        response = Response(url: URL(string: "http://example.com")!, statusCode: 200, headers: [:])!
         XCTAssertTrue(response.isSuccess)
         XCTAssertFalse(response.isRedirect)
 
-        response = ResponseNew(url: URL(string: "http://example.com")!, statusCode: 300, headers: [:])!
+        response = Response(url: URL(string: "http://example.com")!, statusCode: 300, headers: [:])!
         XCTAssertTrue(response.isRedirect)
         XCTAssertFalse(response.isClientError)
 
-        response = ResponseNew(url: URL(string: "http://example.com")!, statusCode: 404, headers: [:])!
+        response = Response(url: URL(string: "http://example.com")!, statusCode: 404, headers: [:])!
         XCTAssertTrue(response.isClientError)
         XCTAssertFalse(response.isServerError)
 
-        response = ResponseNew(url: URL(string: "http://example.com")!, statusCode: 500, headers: [:])!
+        response = Response(url: URL(string: "http://example.com")!, statusCode: 500, headers: [:])!
         XCTAssertTrue(response.isServerError)
         XCTAssertFalse(response.isSuccess)
 
-        response = ResponseNew(url: URL(string: "http://example.com")!, statusCode: 404, headers: [:])!
+        response = Response(url: URL(string: "http://example.com")!, statusCode: 404, headers: [:])!
         XCTAssertTrue(response.isError)
     }
 
     func testSetError() {
-        let response = ResponseNew(url: URL(string: "http://example.com")!, statusCode: 200, headers: [:])!
+        let response = Response(url: URL(string: "http://example.com")!, statusCode: 200, headers: [:])!
         XCTAssertNil(response.error)
 
         response.error = HttpXError.invalidURL()
@@ -131,13 +131,13 @@ final class ResponseTests: XCTestCase {
     }
 
     func testData() {
-        let response = ResponseNew(url: URL(string: "http://example.com")!, statusCode: 200, headers: [:])!
+        let response = Response(url: URL(string: "http://example.com")!, statusCode: 200, headers: [:])!
         response.close()
         XCTAssertEqual(response.getData(), Data())
         XCTAssertEqual(response.getText(), "")
         XCTAssertNil(response.getJSON())
 
-        let response2 = ResponseNew(url: URL(string: "http://example.com")!, statusCode: 200, headers: [:])!
+        let response2 = Response(url: URL(string: "http://example.com")!, statusCode: 200, headers: [:])!
         response2.writeData(String("Hello").data(using: .utf8)!)
         response2.writeData(String(", ").data(using: .utf8)!)
         response2.writeData(String("World").data(using: .utf8)!)
@@ -158,7 +158,7 @@ final class ResponseTests: XCTestCase {
         XCTAssertEqual(response2.getText(), "Hello, World!")
         XCTAssertNil(response2.getJSON())
 
-        let response3 = ResponseNew(url: URL(string: "http://example.com")!, statusCode: 200, headers: [:])!
+        let response3 = Response(url: URL(string: "http://example.com")!, statusCode: 200, headers: [:])!
         response3.writeData("{\"key\": \"value\"}".data(using: .utf8)!)
         response3.close()
 
@@ -168,7 +168,7 @@ final class ResponseTests: XCTestCase {
     }
 
     func testData() async throws {
-        let response = ResponseNew(url: URL(string: "http://example.com")!, statusCode: 200, headers: [:])!
+        let response = Response(url: URL(string: "http://example.com")!, statusCode: 200, headers: [:])!
         response.close()
 
         var data: Data
@@ -181,7 +181,7 @@ final class ResponseTests: XCTestCase {
         json = try await response.getJSON()
         XCTAssertNil(json)
 
-        let response2 = ResponseNew(url: URL(string: "http://example.com")!, statusCode: 200, headers: [:])!
+        let response2 = Response(url: URL(string: "http://example.com")!, statusCode: 200, headers: [:])!
         response2.writeData(String("Hello").data(using: .utf8)!)
         response2.writeData(String(", ").data(using: .utf8)!)
         response2.writeData(String("World").data(using: .utf8)!)
@@ -205,7 +205,7 @@ final class ResponseTests: XCTestCase {
         json = try await response2.getJSON()
         XCTAssertNil(json)
 
-        let response3 = ResponseNew(url: URL(string: "http://example.com")!, statusCode: 200, headers: [:])!
+        let response3 = Response(url: URL(string: "http://example.com")!, statusCode: 200, headers: [:])!
         response3.writeData("{\"key\": \"value\"}".data(using: .utf8)!)
         response3.close()
 
