@@ -127,82 +127,77 @@ internal actor AsyncDispatchSemphore {
     internal func wait() async {
         value -= 1
         if value < 0 {
-            let task = Task<Void, Never> { [self] in
-                _ = await withCheckedContinuation { continuation in
-                    continuations.append((continuation, UUID()))
-                }
+            _ = await withCheckedContinuation { continuation in
+                let workItem = DispatchWorkItem { continuation.resume() }
+                self.worksAndIDs.append((workItem, UUID()))
             }
-            await task.value
         }
     }
 
     internal func wait(timeout: DispatchTime) async -> DispatchTimeoutResult {
         await withCheckedContinuation { continuation in
-            let id = UUID()
-            if self.value >= 1 {
-                self.value -= 1
+            value -= 1
+            if value >= 0 {
                 continuation.resume(returning: .success)
                 return
             }
 
-            value -= 1
+            let id = UUID()
+            let workItem = DispatchWorkItem { continuation.resume(returning: .success) }
+            self.worksAndIDs.append((workItem, id))
+
             queue.asyncAfter(deadline: timeout) {
-                Task { await self.removeContinuation(id: id, withResult: .timedOut) }
+                Task {
+                    if await self.removeWork(withID: id) {
+                        continuation.resume(returning: .timedOut)
+                    }
+                }
             }
-            Task { await self.addContinuation(id: id, continuation: continuation) }
         }
     }
 
     internal func wait(wallTimeout: DispatchWallTime) async -> DispatchTimeoutResult {
         await withCheckedContinuation { continuation in
-            let id = UUID()
-            if self.value >= 1 {
-                self.value -= 1
+            value -= 1
+            if value >= 0 {
                 continuation.resume(returning: .success)
                 return
             }
 
-            value -= 1
+            let id = UUID()
+            let workItem = DispatchWorkItem { continuation.resume(returning: .success) }
+            self.worksAndIDs.append((workItem, id))
+
             queue.asyncAfter(wallDeadline: wallTimeout) {
-                Task { await self.removeContinuation(id: id, withResult: .timedOut) }
+                Task {
+                    if await self.removeWork(withID: id) {
+                        continuation.resume(returning: .timedOut)
+                    }
+                }
             }
-            Task { await self.addContinuation(id: id, continuation: continuation) }
         }
     }
 
-    internal func signal() {
+    internal func signal() async {
         value += 1
-        if let continuation = continuations.first {
-            continuations.removeFirst()
-            continuation.continuation.resume(returning: .success)
+        if let work = worksAndIDs.first {
+            worksAndIDs.removeFirst()
+            queue.sync(execute: work.work)
         }
     }
 
     // MARK: Private
 
     private var value: Int
-    private var continuations = [
-        (
-            continuation: CheckedContinuation<DispatchTimeoutResult, Never>,
-            id: UUID
-        ),
-    ]()
     private var queue = DispatchQueue(label: "com.AsyncDispatchSemphore.\(UUID().uuidString)")
+    private var worksAndIDs = [(work: DispatchWorkItem, id: UUID)]()
 
-    private func addContinuation(
-        id: UUID,
-        continuation: CheckedContinuation<DispatchTimeoutResult, Never>
-    ) async {
-        continuations.append((continuation, id))
-    }
-
-    private func removeContinuation(id: UUID, withResult result: DispatchTimeoutResult?) async {
-        if let index = continuations.firstIndex(where: { $0.id == id }) {
+    private func removeWork(withID id: UUID) async -> Bool {
+        if let index = worksAndIDs.firstIndex(where: { $0.id == id }) {
+            worksAndIDs.remove(at: index)
             value += 1
-            let continuation = continuations.remove(at: index).continuation
-            if let result {
-                continuation.resume(returning: result)
-            }
+            return true
         }
+        return false
     }
 }
