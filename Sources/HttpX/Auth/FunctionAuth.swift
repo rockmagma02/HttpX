@@ -13,9 +13,9 @@
 // limitations under the License.
 
 import Foundation
+import SyncStream
 
 /// The FunctionAuth class, user should provide an auth function.
-@available(macOS 10.15, *)
 public class FunctionAuth: BaseAuth {
     // MARK: Lifecycle
 
@@ -23,7 +23,11 @@ public class FunctionAuth: BaseAuth {
     ///
     /// - Parameters:
     ///     - authFunction: The auth function for the function auth.
-    public init(authFunction: @escaping (URLRequest?, Response?) -> (URLRequest, Bool)) {
+    ///
+    /// Functional authentication assumes that the authentication will simply modify
+    /// the request once. Simple authentication methods, such as adding a header or
+    /// changing the request method, can be implemented using this approach.
+    public init(authFunction: @escaping (URLRequest) -> URLRequest) {
         self.authFunction = authFunction
     }
 
@@ -36,11 +40,23 @@ public class FunctionAuth: BaseAuth {
     /// default value is false
     public var needResponseBody: Bool { false }
 
-    public func authFlow(request: URLRequest?, lastResponse: Response?) -> (URLRequest?, Bool) {
-        authFunction(request, lastResponse)
+    public func authFlow(
+        _ request: URLRequest,
+        continuation: BidirectionalSyncStream<URLRequest, Response, NoneType>.Continuation
+    ) {
+        continuation.yield(authFunction(request))
+        continuation.return(NoneType())
+    }
+
+    public func authFlow(
+        _ request: URLRequest,
+        continuation: BidirectionalAsyncStream<URLRequest, Response, NoneType>.Continuation
+    ) async {
+        await continuation.yield(authFunction(request))
+        await continuation.return(NoneType())
     }
 
     // MARK: Private
 
-    private var authFunction: (URLRequest?, Response?) -> (URLRequest, Bool)
+    private var authFunction: (URLRequest) -> URLRequest
 }

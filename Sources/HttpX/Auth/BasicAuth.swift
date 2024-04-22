@@ -13,17 +13,16 @@
 // limitations under the License.
 
 import Foundation
+import SyncStream
 
 /// The BasicAuth class, user should provide the username and password.
-@available(macOS 10.15, *)
 public class BasicAuth: BaseAuth {
     // MARK: Lifecycle
 
     /// Initialize the BasicAuth with username and password.
-    ///
     /// - Parameters:
-    ///   - username: The username for the basic auth.
-    ///   - password: The password for the basic auth.
+    ///     - username: The username for the basic auth.
+    ///     - password: The password for the basic auth.
     public init(username: String, password: String) {
         self.username = username
         self.password = password
@@ -35,18 +34,34 @@ public class BasicAuth: BaseAuth {
 
     /// default value is false
     public var needRequestBody: Bool { false }
+
     /// default value is false
     public var needResponseBody: Bool { false }
 
-    public func authFlow(request: URLRequest?, lastResponse _: Response?) throws -> (URLRequest?, Bool) {
-        if var request {
-            request.setValue(
-                buildAuthHeader(username: username, password: password),
-                forHTTPHeaderField: "Authorization"
-            )
-            return (request, true)
-        }
-        throw AuthError.invalidRequest(message: "Request is nil in \(BasicAuth.self)")
+    public func authFlow(
+        _ request: URLRequest,
+        continuation: BidirectionalSyncStream<URLRequest, Response, NoneType>.Continuation
+    ) {
+        var request = request
+        request.setValue(
+            buildAuthHeader(username: username, password: password),
+            forHTTPHeaderField: "Authorization"
+        )
+        continuation.yield(request)
+        continuation.return(NoneType())
+    }
+
+    public func authFlow(
+        _ request: URLRequest,
+        continuation: BidirectionalAsyncStream<URLRequest, Response, NoneType>.Continuation
+    ) async {
+        var request = request
+        request.setValue(
+            buildAuthHeader(username: username, password: password),
+            forHTTPHeaderField: "Authorization"
+        )
+        await continuation.yield(request)
+        await continuation.return(NoneType())
     }
 
     // MARK: Private

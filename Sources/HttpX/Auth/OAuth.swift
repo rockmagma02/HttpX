@@ -13,9 +13,9 @@
 // limitations under the License.
 
 import Foundation
+import SyncStream
 
-/// The OAuth class, user should provide the token.
-@available(macOS 10.15, *)
+/// /// The OAuth class, user should provide the token.
 public class OAuth: BaseAuth {
     // MARK: Lifecycle
 
@@ -33,25 +33,35 @@ public class OAuth: BaseAuth {
 
     /// default value is false
     public var needRequestBody: Bool { false }
+
     /// default value is false
     public var needResponseBody: Bool { false }
 
-    public func authFlow(request: URLRequest?, lastResponse _: Response?) throws -> (URLRequest?, Bool) {
-        if var request {
-            request.setValue(
-                buildAuthHeader(token: token),
-                forHTTPHeaderField: "Authorization"
-            )
-            return (request, true)
-        }
-        throw AuthError.invalidRequest(message: "Request is nil in \(OAuth.self)")
+    public func authFlow(
+        _ request: URLRequest,
+        continuation: BidirectionalSyncStream<URLRequest, Response, NoneType>.Continuation
+    ) {
+        var request = request
+        request.addValue(buildAuthHeader(token), forHTTPHeaderField: "Authorization")
+        continuation.yield(request)
+        continuation.return(NoneType())
+    }
+
+    public func authFlow(
+        _ request: URLRequest,
+        continuation: BidirectionalAsyncStream<URLRequest, Response, NoneType>.Continuation
+    ) async {
+        var request = request
+        request.addValue(buildAuthHeader(token), forHTTPHeaderField: "Authorization")
+        await continuation.yield(request)
+        await continuation.return(NoneType())
     }
 
     // MARK: Private
 
     private var token: String
 
-    private func buildAuthHeader(token: String) -> String {
+    private func buildAuthHeader(_ token: String) -> String {
         "Bearer \(token)"
     }
 }

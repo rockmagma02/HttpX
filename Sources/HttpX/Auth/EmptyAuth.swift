@@ -13,15 +13,14 @@
 // limitations under the License.
 
 import Foundation
+import SyncStream
 
-/// The EmptyAuth class, default auth, do nothing.
-@available(macOS 10.15, *)
+/// /// The EmptyAuth class, default auth, do nothing.
 public class EmptyAuth: BaseAuth {
     // MARK: Lifecycle
 
-    /// Initialize the EmptyAuth.
+    /// /// Initialize the EmptyAuth.
     public init() {}
-
     deinit {}
 
     // MARK: Public
@@ -31,7 +30,18 @@ public class EmptyAuth: BaseAuth {
     /// default value is false
     public var needResponseBody: Bool { false }
 
-    public func authFlow(request: URLRequest?, lastResponse _: Response?) -> (URLRequest?, Bool) {
-        (request, true)
+    public func authFlow(
+        _ request: URLRequest,
+        continuation: BidirectionalSyncStream<URLRequest, Response, NoneType>.Continuation
+    ) {
+        continuation.yield(request)
+        continuation.return(NoneType())
+    }
+
+    public func authFlow(
+        _ request: URLRequest, continuation: BidirectionalAsyncStream<URLRequest, Response, NoneType>.Continuation
+    ) async {
+        await continuation.yield(request)
+        await continuation.return(NoneType())
     }
 }
