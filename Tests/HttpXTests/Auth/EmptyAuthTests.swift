@@ -36,11 +36,19 @@ final class EmptyAuthTests: XCTestCase {
         XCTAssertFalse(emptyAuth.needResponseBody)
     }
 
-    func testAuthFlow() {
+    func testAuthFlow() throws {
         let request = URLRequest(url: URL(string: "https://example.com")!)
-        let (modifiedRequest, shouldProceed) = emptyAuth.authFlow(request: request, lastResponse: nil)
+        let authFlow = emptyAuth.authFlowAdapter(request)
+        let modifiedRequest = try authFlow.next()
 
         XCTAssertEqual(modifiedRequest, request)
-        XCTAssertTrue(shouldProceed)
+    }
+
+    func testAuthFlowAsync() async throws {
+        let request = URLRequest(url: URL(string: "https://example.com")!)
+        let authFlow = await emptyAuth.authFlowAdapter(request)
+        let modifiedRequest = try await authFlow.next()
+
+        XCTAssertEqual(modifiedRequest, request)
     }
 }

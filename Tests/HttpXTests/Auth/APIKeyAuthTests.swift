@@ -13,6 +13,7 @@
 // limitations under the License.
 
 @testable import HttpX
+import SyncStream
 import XCTest
 
 class APIKeyAuthTests: XCTestCase {
@@ -21,22 +22,23 @@ class APIKeyAuthTests: XCTestCase {
         let apiKeyAuth = APIKeyAuth(key: "testKey")
         let request = URLRequest(url: URL(string: "https://example.com")!)
 
-        // When
-        let (modifiedRequest, shouldContinue) = try apiKeyAuth.authFlow(request: request, lastResponse: nil)
+        let authFlow = apiKeyAuth.authFlowAdapter(request)
+        let modifiedRequest = try authFlow.next()
 
         // Then
-        XCTAssertEqual(modifiedRequest?.value(forHTTPHeaderField: "x-api-key"), "testKey")
-        XCTAssertTrue(shouldContinue)
+        XCTAssertEqual(modifiedRequest.value(forHTTPHeaderField: "x-api-key"), "testKey")
     }
 
-    func testAuthFlow_withNilRequest_shouldReturnNilAndTrue() throws {
+    func testAuthFlow_withValidRequest_shouldSetAPIKeyHeaderAsync() async throws {
         // Given
         let apiKeyAuth = APIKeyAuth(key: "testKey")
+        let request = URLRequest(url: URL(string: "https://example.com")!)
 
-        // When // Then
-        XCTAssertThrowsError(try apiKeyAuth.authFlow(request: nil, lastResponse: nil)) {
-            XCTAssertEqual($0 as? AuthError, AuthError.invalidRequest())
-        }
+        let authFlow = await apiKeyAuth.authFlowAdapter(request)
+        let modifiedRequest = try await authFlow.next()
+
+        // Then
+        XCTAssertEqual(modifiedRequest.value(forHTTPHeaderField: "x-api-key"), "testKey")
     }
 
     func testProperty() {

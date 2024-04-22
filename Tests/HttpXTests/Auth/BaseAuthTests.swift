@@ -13,6 +13,7 @@
 // limitations under the License.
 
 @testable import HttpX
+import SyncStream
 import XCTest
 
 // MARK: - BaseAuthTests
@@ -23,12 +24,20 @@ final class BaseAuthTests: XCTestCase {
         let mockAuth = MockBaseAuth(needRequestBody: true, needResponseBody: false)
         var request = URLRequest(url: URL(string: "https://example.com")!)
         request.httpBodyStream = InputStream(data: "test body".data(using: .utf8)!)
+        let authFlow = mockAuth.authFlowAdapter(request)
+        let modifiedRequest = try authFlow.next()
+        XCTAssertNotNil(modifiedRequest.httpBody)
+        XCTAssertNil(modifiedRequest.httpBodyStream)
+    }
 
-        let (modifiedRequest, authDone) = try mockAuth.syncAuthFlow(request: request, lastResponse: nil)
-
-        XCTAssertNotNil(modifiedRequest?.httpBody)
-        XCTAssertNil(modifiedRequest?.httpBodyStream)
-        XCTAssertFalse(authDone)
+    func testSyncAuthFlowWithRequestBodyAsync() async throws {
+        let mockAuth = MockBaseAuth(needRequestBody: true, needResponseBody: false)
+        var request = URLRequest(url: URL(string: "https://example.com")!)
+        request.httpBodyStream = InputStream(data: "test body".data(using: .utf8)!)
+        let authFlow = await mockAuth.authFlowAdapter(request)
+        let modifiedRequest = try await authFlow.next()
+        XCTAssertNotNil(modifiedRequest.httpBody)
+        XCTAssertNil(modifiedRequest.httpBodyStream)
     }
 
     func testSyncAuthFlowWithResponseBody() throws {
@@ -36,33 +45,23 @@ final class BaseAuthTests: XCTestCase {
         let request = URLRequest(url: URL(string: "https://example.com")!)
         let lastResponse = MockResponse(url: request.url!, statusCode: 200)!
 
-        let (_, authDone) = try mockAuth.syncAuthFlow(request: request, lastResponse: lastResponse)
+        let authFlow = mockAuth.authFlowAdapter(request)
+        _ = try authFlow.next()
+        _ = try authFlow.send(lastResponse)
 
         XCTAssertTrue(lastResponse.didReadAllFormSyncStream)
-        XCTAssertFalse(authDone)
     }
 
-    func testAsyncAuthFlowWithRequestBody() async throws {
-        let mockAuth = MockBaseAuth(needRequestBody: true, needResponseBody: false)
-        var request = URLRequest(url: URL(string: "https://example.com")!)
-        request.httpBodyStream = InputStream(data: "test body".data(using: .utf8)!)
-
-        let (modifiedRequest, authDone) = try await mockAuth.asyncAuthFlow(request: request, lastResponse: nil)
-
-        XCTAssertNotNil(modifiedRequest?.httpBody)
-        XCTAssertNil(modifiedRequest?.httpBodyStream)
-        XCTAssertFalse(authDone)
-    }
-
-    func testAsyncAuthFlowWithResponseBody() async throws {
+    func testSyncAuthFlowWithResponseBodyAsync() async throws {
         let mockAuth = MockBaseAuth(needRequestBody: false, needResponseBody: true)
         let request = URLRequest(url: URL(string: "https://example.com")!)
         let lastResponse = MockResponse(url: request.url!, statusCode: 200)!
 
-        let (_, authDone) = try await mockAuth.asyncAuthFlow(request: request, lastResponse: lastResponse)
+        let authFlow = await mockAuth.authFlowAdapter(request)
+        _ = try await authFlow.next()
+        _ = try await authFlow.send(lastResponse)
 
         XCTAssertTrue(lastResponse.didReadAllFormAsyncStream)
-        XCTAssertFalse(authDone)
     }
 }
 
@@ -82,9 +81,16 @@ private class MockBaseAuth: BaseAuth {
     var needRequestBody: Bool
     var needResponseBody: Bool
 
-    func authFlow(request: URLRequest?, lastResponse _: Response?) throws -> (URLRequest?, Bool) {
-        // Mock implementation
-        (request, false)
+    func authFlow(_ request: URLRequest, continuation: BidirectionalSyncStream<URLRequest, Response, NoneType>.Continuation) {
+        let _ = continuation.yield(request)
+        let _ = continuation.yield(request)
+        continuation.return(NoneType())
+    }
+
+    func authFlow(_ request: URLRequest, continuation: BidirectionalAsyncStream<URLRequest, Response, NoneType>.Continuation) async {
+        let _ = await continuation.yield(request)
+        let _ = await continuation.yield(request)
+        await continuation.return(NoneType())
     }
 }
 

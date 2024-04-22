@@ -21,13 +21,15 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(url: "https://github.com/rockmagma02/SyncStream.git", from: "1.1.2"),
         .package(url: "https://github.com/apple/swift-docc-plugin", branch: "main"),
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "HttpX"
+            name: "HttpX",
+            dependencies: ["SyncStream"]
         ),
         .testTarget(
             name: "HttpXTests",

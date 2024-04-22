@@ -13,82 +13,144 @@
 // limitations under the License.
 
 import Foundation
+import SyncStream
 
 // MARK: - BaseAuth
 
+// swiftlint:disable closure_body_length
+
 /// Protocol defining the base authentication flow.
-@available(macOS 10.15, *)
 public protocol BaseAuth {
     /// Indicates if the request body is needed for authentication.
     var needRequestBody: Bool { get }
     /// Indicates if the response body is needed for authentication.
     var needResponseBody: Bool { get }
 
-    /// Handles the authentication flow for a given request and last response.
+    /// The authentication flow. Bidirectional communication with the Client.
+    ///
     /// - Parameters:
-    ///   - request: The current URLRequest that needs authentication.
-    ///   - lastResponse: The last URLResponse received from the server.
-    /// - Returns: A tuple containing the modified URLRequest and a Bool indicating if auth flow is done.
+    ///     - request: The initial request to be authenticated.
+    ///     - continuation: The continuation of the stream, which will communicate with
+    ///         the client. Having method `yield(_:)`, `return(_:)`, `throw(_:)`.
     ///
-    /// When you create a custom authentication method, you need to implement the `authFlow` method.
-    /// The method should take two parameters, a `URLRequest` and a `Response`, and return a tuple
-    /// containing the modified `URLRequest` and a `Bool` value indicating whether the auth is done.
+    /// Basically, The Client will give the initial request to the flow, and the flow can
+    /// add auth header or do other something, than `yield(_:)` it back to the client.
+    /// The Client will send the request to the server, and fetch the response back, then
+    /// send it back to the flow, i.d. the `yield(_:)` will return the response. If the
+    /// auth progress is over, authFlow can invoke `return(NoneType())` to end the flow,
+    /// or continue the flow by `yield(_:)` the modified request back to the client. If
+    /// any error occurred, the flow can throw the error to the client by `throw(_:)`.
     ///
-    /// In some situation, the auth need to use the response of the request to decide the next request.
-    ///  Like the Digest Auth, after you send the first request, the server will return the
-    /// `WWW-Authenticate` header, and you need to use the header to generate the `Authorization`
-    /// header for the next request. In this case, you can return `false` in the second value of
-    /// the tuple to indicate the auth need to use the response.
-    func authFlow(request: URLRequest?, lastResponse: Response?) throws -> (URLRequest?, Bool)
+    /// When you creat a custom authentication method, The `authFlow(_:, continuation:)`
+    /// method should be implemented.
+    func authFlow(
+        _ request: URLRequest,
+        continuation: BidirectionalSyncStream<URLRequest, Response, NoneType>.Continuation
+    )
+
+    /// The Async Version authentication flow. Bidirectional communication with the Client.
+    ///
+    /// - Parameters:
+    ///     - request: The initial request to be authenticated.
+    ///     - continuation: The continuation of the stream, which will communicate with
+    ///         the client. Having method `yield(_:)`, `return(_:)`, `throw(_:)`.
+    ///
+    /// Have the same behavior as the sync version, but the method is async, all interactions
+    /// with the `continuation` should be `await`. For the custom authentication method, you
+    /// can simplily copy the sync version `authFlow(_:, continuation:)` to the async version,
+    /// but add the `await` keyword before the `yield(_:)`, `return(_:)`, `throw(_:)`.
+    func authFlow(
+        _ request: URLRequest,
+        continuation: BidirectionalAsyncStream<URLRequest, Response, NoneType>.Continuation
+    ) async
 }
 
-@available(macOS 10.15, *)
 extension BaseAuth {
-    /// Synchronously handles the authentication flow for a given request and last response.
-    /// This method ensures that if the request body is needed, it is converted from a stream to data.
-    /// - Parameters:
-    ///   - request: The current URLRequest that needs authentication.
-    ///   - lastResponse: The last URLResponse received from the server.
-    /// - Returns: A tuple containing the modified URLRequest and a Bool indicating if auth flow is done.
-    func syncAuthFlow( // swiftlint:disable:this explicit_acl
-        request: URLRequest?, lastResponse: Response?
-    ) throws -> (URLRequest?, Bool) {
-        var request = request
-        let lastResponse = lastResponse
-        if needRequestBody, request != nil {
-            if let stream = request!.httpBodyStream {
-                // read all data from the stream
-                let data = stream.readAllData()
-                request!.httpBodyStream = nil
-                request!.httpBody = data
+    func authFlowAdapter( // swiftlint:disable:this explicit_acl
+        _ request: URLRequest
+    ) -> BidirectionalSyncStream<URLRequest, Response, NoneType> {
+        BidirectionalSyncStream<URLRequest, Response, NoneType> { continuation in
+            var request = request
+            var response: Response
+            if needRequestBody {
+                if let stream = request.httpBodyStream {
+                    // read all data from the stream
+                    let data = stream.readAllData()
+                    request.httpBodyStream = nil
+                    request.httpBody = data
+                }
             }
+            let streamAdapter = BidirectionalSyncStream<URLRequest, Response, NoneType> { continuationAdapter in
+                self.authFlow(request, continuation: continuationAdapter)
+            }
+            do {
+                request = try streamAdapter.next()
+            } catch {
+                continuation.throw(error: error)
+                return
+            }
+            while true {
+                response = continuation.yield(request)
+                if needResponseBody {
+                    _ = response.getData()
+                }
+                do {
+                    request = try streamAdapter.send(response)
+                } catch {
+                    if error is StopIteration<NoneType> {
+                        break
+                    }
+                    continuation.throw(error: error)
+                    return
+                }
+            }
+            continuation.return(NoneType())
         }
-
-        if needResponseBody, lastResponse != nil {
-            _ = lastResponse?.getData()
-        }
-
-        return try authFlow(request: request, lastResponse: lastResponse)
     }
 
-    func asyncAuthFlow( // swiftlint:disable:this explicit_acl
-        request: URLRequest?, lastResponse: Response?
-    ) async throws -> (URLRequest?, Bool) {
-        var request = request
-        let lastResponse = lastResponse
-        if needRequestBody, request != nil {
-            if let stream = request!.httpBodyStream {
-                // read all data from the stream
-                let data = stream.readAllData()
-                request!.httpBodyStream = nil
-                request!.httpBody = data
+    func authFlowAdapter( // swiftlint:disable:this explicit_acl
+        _ request: URLRequest
+    ) async -> BidirectionalAsyncStream<URLRequest, Response, NoneType> {
+        BidirectionalAsyncStream<URLRequest, Response, NoneType> { continuation in
+            var request = request
+            var response: Response
+            if needRequestBody {
+                if let stream = request.httpBodyStream {
+                    // read all data from the stream
+                    let data = stream.readAllData()
+                    request.httpBodyStream = nil
+                    request.httpBody = data
+                }
             }
+            let streamAdapter = BidirectionalAsyncStream<URLRequest, Response, NoneType> { continuaitonAdapter in
+                await self.authFlow(request, continuation: continuaitonAdapter)
+            }
+            do {
+                request = try await streamAdapter.next()
+            } catch {
+                await continuation.throw(error: error)
+            }
+            while true {
+                response = await continuation.yield(request)
+                if needResponseBody {
+                    do {
+                        _ = try await response.getData()
+                    } catch {
+                        await continuation.throw(error: error)
+                    }
+                }
+                do {
+                    request = try await streamAdapter.send(response)
+                } catch {
+                    if error is StopIteration<NoneType> {
+                        break
+                    }
+                    await continuation.throw(error: error)
+                }
+            }
+            await continuation.return(NoneType())
         }
-
-        if needResponseBody, lastResponse != nil {
-            _ = try await lastResponse?.getData()
-        }
-
-        return try authFlow(request: request, lastResponse: lastResponse)
     }
 }
+
+// swiftlint:enable closure_body_length

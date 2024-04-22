@@ -13,9 +13,9 @@
 // limitations under the License.
 
 import Foundation
+import SyncStream
 
 /// The APIKeyAuth class, user should provide the key.
-@available(macOS 10.15, *)
 public class APIKeyAuth: BaseAuth {
     // MARK: Lifecycle
 
@@ -32,18 +32,28 @@ public class APIKeyAuth: BaseAuth {
 
     /// default value is false
     public var needRequestBody: Bool { false }
+
     /// default value is false
     public var needResponseBody: Bool { false }
 
-    public func authFlow(request: URLRequest?, lastResponse _: Response?) throws -> (URLRequest?, Bool) {
-        if var request {
-            request.setValue(
-                key,
-                forHTTPHeaderField: "x-api-key"
-            )
-            return (request, true)
-        }
-        throw AuthError.invalidRequest(message: "Request is nil in \(APIKeyAuth.self)")
+    public func authFlow(
+        _ request: URLRequest,
+        continuation: BidirectionalSyncStream<URLRequest, Response, NoneType>.Continuation
+    ) {
+        var request = request
+        request.setValue(key, forHTTPHeaderField: "X-Api-Key")
+        continuation.yield(request)
+        continuation.return(NoneType())
+    }
+
+    public func authFlow(
+        _ request: URLRequest,
+        continuation: BidirectionalAsyncStream<URLRequest, Response, NoneType>.Continuation
+    ) async {
+        var request = request
+        request.setValue(key, forHTTPHeaderField: "X-Api-Key")
+        await continuation.yield(request)
+        await continuation.return(NoneType())
     }
 
     // MARK: Private

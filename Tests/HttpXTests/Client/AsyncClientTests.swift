@@ -32,50 +32,6 @@ final class AsyncClientTests: XCTestCase {
         mock()
     }
 
-    func testRequest() async throws {
-        class WrongAuth: BaseAuth {
-            var needRequestBody = false
-            var needResponseBody = false
-            func authFlow(request _: URLRequest?, lastResponse _: Response?) throws -> (URLRequest?, Bool) {
-                (nil, true)
-            }
-        }
-        let expectation = expectation(description: "request")
-        do {
-            _ = try await client.request(
-                method: .get,
-                url: URLType.string("/get"),
-                auth: AuthType.class(WrongAuth())
-            )
-        } catch {
-            expectation.fulfill()
-            XCTAssertEqual(error as? HttpXError, HttpXError.invalidRequest())
-        }
-        await fulfillment(of: [expectation], timeout: 5)
-    }
-
-    func testNonAuth() async throws {
-        // This Auth will stop when need to send request body secondly
-        class NonAuth: BaseAuth {
-            var needRequestBody = false
-            var needResponseBody = false
-            func authFlow(request: URLRequest?, lastResponse: Response?) throws -> (URLRequest?, Bool) {
-                if let request, lastResponse == nil {
-                    (request, false)
-                } else {
-                    (nil, false)
-                }
-            }
-        }
-
-        let response = try await client.request(
-            method: .get,
-            url: URLType.string("/get"),
-            auth: AuthType.class(NonAuth())
-        )
-        XCTAssertEqual(response.statusCode, 200)
-    }
-
     func testMaxRedirect() async throws {
         let expectation = expectation(description: "maxRedirect")
         do {

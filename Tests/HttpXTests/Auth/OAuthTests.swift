@@ -23,27 +23,25 @@ class OAuthTests: XCTestCase {
         let request = URLRequest(url: URL(string: "https://example.com")!)
 
         // When
-        let (modifiedRequest, result) = try oauth.authFlow(request: request, lastResponse: nil)
+        let authFlow = oauth.authFlowAdapter(request)
+        let modifiedRequest = try authFlow.next()
 
         // Then
         XCTAssertNotNil(modifiedRequest)
-        XCTAssertTrue(result)
-        XCTAssertEqual(modifiedRequest?.value(forHTTPHeaderField: "Authorization"), "Bearer testToken")
+        XCTAssertEqual(modifiedRequest.value(forHTTPHeaderField: "Authorization"), "Bearer testToken")
     }
 
-    func testAuthFlow_withNilRequest_returnsNilAndTrue() throws {
+    func testAuthFlow_withValidRequest_returnsModifiedRequestAndTrueAsync() async throws {
         // Given
         let oauth = OAuth(token: "testToken")
+        let request = URLRequest(url: URL(string: "https://example.com")!)
 
-        // When // Then
-        XCTAssertThrowsError(try oauth.authFlow(request: nil, lastResponse: nil)) {
-            XCTAssertEqual($0 as? AuthError, AuthError.invalidRequest())
-        }
-    }
+        // When
+        let authFlow = await oauth.authFlowAdapter(request)
+        let modifiedRequest = try await authFlow.next()
 
-    func testProperty() {
-        let auth = OAuth(token: "testToken")
-        XCTAssertEqual(auth.needRequestBody, false)
-        XCTAssertEqual(auth.needResponseBody, false)
+        // Then
+        XCTAssertNotNil(modifiedRequest)
+        XCTAssertEqual(modifiedRequest.value(forHTTPHeaderField: "Authorization"), "Bearer testToken")
     }
 }

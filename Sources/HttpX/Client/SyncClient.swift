@@ -14,6 +14,7 @@
 
 import Dispatch
 import Foundation
+import SyncStream
 
 /// Synchronous HTTP client.
 @available(macOS 10.15, *)
@@ -107,37 +108,36 @@ public class SyncClient: BaseClient {
         history: [Response] = [],
         chunkSize: Int? = nil
     ) throws -> Response {
+        var request = request
         var history = history
-        var (request, authStop) = try auth.syncAuthFlow(request: request, lastResponse: nil)
+        var response: Response?
+        let authFlow = auth.authFlowAdapter(request)
+        request = try authFlow.next()
 
-        guard request != nil else {
-            throw HttpXError.invalidRequest(message: "Auth flow did not return a request")
-        }
+        while true {
+            response = try sandHandlingRedirect(
+                request: request,
+                followRedirects: followRedirects,
+                history: history,
+                chunkSize: chunkSize
+            )
 
-        var response = try sandHandlingRedirect(
-            request: request!,
-            followRedirects: followRedirects,
-            history: history,
-            chunkSize: chunkSize
-        )
-
-        while !authStop {
-            (request, authStop) = try auth.syncAuthFlow(request: request, lastResponse: response)
-            if let request {
-                response = try sandHandlingRedirect(
-                    request: request,
-                    followRedirects: followRedirects,
-                    history: history,
-                    chunkSize: chunkSize
-                )
-                response.historyInternal = history
-                history += [response]
-            } else {
-                break
+            let nextRequest: URLRequest
+            do {
+                nextRequest = try authFlow.send(response!)
+            } catch {
+                if error is StopIteration<NoneType> {
+                    break
+                }
+                throw error
             }
+
+            response?.historyInternal = history
+            request = nextRequest
+            history += [response!]
         }
 
-        return response
+        return response!
     }
 
     internal func sandHandlingRedirect(

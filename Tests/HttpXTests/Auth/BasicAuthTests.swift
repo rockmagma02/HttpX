@@ -22,20 +22,24 @@ final class BasicAuthTests: XCTestCase {
         let basicAuth = BasicAuth(username: "testUser", password: "testPass")
         let request = URLRequest(url: URL(string: "https://example.com")!)
 
-        let (modifiedRequest, didModify) = try basicAuth.authFlow(request: request, lastResponse: nil)
+        let authFlow = basicAuth.authFlowAdapter(request)
+        let modifiedRequest = try authFlow.next()
 
         XCTAssertNotNil(modifiedRequest)
-        XCTAssertTrue(didModify)
         let expectedAuthHeader = buildAuthHeader(username: "testUser", password: "testPass")
-        XCTAssertEqual(modifiedRequest?.value(forHTTPHeaderField: "Authorization"), expectedAuthHeader)
+        XCTAssertEqual(modifiedRequest.value(forHTTPHeaderField: "Authorization"), expectedAuthHeader)
     }
 
-    func testAuthFlowWithNilRequest() throws {
+    func testAuthFlowWithValidRequestAsync() async throws {
         let basicAuth = BasicAuth(username: "testUser", password: "testPass")
+        let request = URLRequest(url: URL(string: "https://example.com")!)
 
-        XCTAssertThrowsError(try basicAuth.authFlow(request: nil, lastResponse: nil)) { error in
-            XCTAssertEqual(error as? AuthError, AuthError.invalidRequest())
-        }
+        let authFlow = await basicAuth.authFlowAdapter(request)
+        let modifiedRequest = try await authFlow.next()
+
+        XCTAssertNotNil(modifiedRequest)
+        let expectedAuthHeader = buildAuthHeader(username: "testUser", password: "testPass")
+        XCTAssertEqual(modifiedRequest.value(forHTTPHeaderField: "Authorization"), expectedAuthHeader)
     }
 
     func testProperty() {
