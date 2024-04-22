@@ -173,12 +173,11 @@ class AuthTypeTests: XCTestCase {
     }
 
     func testBuildAuthWithFunc() throws {
-        let authFunction: (URLRequest?, Response?) -> (URLRequest, Bool) = { _, _ in
-            (URLRequest(url: URL(string: "https://example.com")!), true)
+        let authFunction: (URLRequest) -> URLRequest = { _ in
+            URLRequest(url: URL(string: "https://example.com")!)
         }
         let authType = AuthType.func(authFunction)
         let result = authType.buildAuth()
-        _ = try result.authFlow(request: nil, lastResponse: nil)
         XCTAssertTrue(result is FunctionAuth)
     }
 }

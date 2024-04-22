@@ -16,37 +16,35 @@
 import XCTest
 
 class FunctionAuthTests: XCTestCase {
-    func testAuthFlow_withValidRequestAndResponse_returnsTrue() {
+    func testAuthFlow_withValidRequestAndResponse_returnsTrue() throws {
         // Given
         let expectedRequest = URLRequest(url: URL(string: "https://example.com")!)
-        let response = Response(url: expectedRequest.url!, statusCode: 200)!
-        let authFunction: (URLRequest?, Response?) -> (URLRequest, Bool) = { request, _ in
-            (request!, true)
+        let authFunction: (URLRequest) -> URLRequest = { request in
+            request
         }
         let functionAuth = FunctionAuth(authFunction: authFunction)
 
         // When
-        let (request, result) = functionAuth.authFlow(request: expectedRequest, lastResponse: response)
+        let authFlow = functionAuth.authFlowAdapter(expectedRequest)
+        let request = try authFlow.next()
 
         // Then
-        XCTAssertTrue(result)
         XCTAssertEqual(request, expectedRequest)
     }
 
-    func testAuthFlow_withNilRequest_returnsFalse() {
+    func testAuthFlow_withValidRequestAndResponse_returnsTrueAsync() async throws {
         // Given
-        let authFunction: (URLRequest?, Response?) -> (URLRequest, Bool) = { _, _ in
-            (URLRequest(url: URL(string: "https://example.com")!), false)
+        let expectedRequest = URLRequest(url: URL(string: "https://example.com")!)
+        let authFunction: (URLRequest) -> URLRequest = { request in
+            request
         }
         let functionAuth = FunctionAuth(authFunction: authFunction)
 
         // When
-        let (_, result) = functionAuth.authFlow(request: nil, lastResponse: nil)
+        let authFlow = await functionAuth.authFlowAdapter(expectedRequest)
+        let request = try await authFlow.next()
 
         // Then
-        XCTAssertFalse(result)
-
-        XCTAssertEqual(functionAuth.needRequestBody, false)
-        XCTAssertEqual(functionAuth.needResponseBody, false)
+        XCTAssertEqual(request, expectedRequest)
     }
 }

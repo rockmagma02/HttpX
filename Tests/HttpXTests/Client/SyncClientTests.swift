@@ -32,47 +32,6 @@ final class SyncClientTests: XCTestCase {
         mock()
     }
 
-    func testRequest() throws {
-        class WrongAuth: BaseAuth {
-            var needRequestBody = false
-            var needResponseBody = false
-            func authFlow(request _: URLRequest?, lastResponse _: Response?) throws -> (URLRequest?, Bool) {
-                (nil, true)
-            }
-        }
-
-        XCTAssertThrowsError(try client.request(
-            method: .get,
-            url: URLType.string("/get"),
-            auth: AuthType.class(WrongAuth()),
-            followRedirects: nil
-        )) {
-            XCTAssertEqual($0 as? HttpXError, HttpXError.invalidRequest())
-        }
-    }
-
-    func testNonAuth() throws {
-        // This Auth will stop when need to send request body secondly
-        class NonAuth: BaseAuth {
-            var needRequestBody = false
-            var needResponseBody = false
-            func authFlow(request: URLRequest?, lastResponse: Response?) throws -> (URLRequest?, Bool) {
-                if let request, lastResponse == nil {
-                    (request, false)
-                } else {
-                    (nil, false)
-                }
-            }
-        }
-
-        let response = try client.request(
-            method: .get,
-            url: URLType.string("/get"),
-            auth: AuthType.class(NonAuth())
-        )
-        XCTAssertEqual(response.statusCode, 200)
-    }
-
     func testMaxRedirect() throws {
         XCTAssertThrowsError(
             try client.request(method: .get, url: URLType.string("/absolute-redirect/3"), followRedirects: true)
