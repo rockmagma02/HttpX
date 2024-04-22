@@ -21,7 +21,7 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/rockmagma02/SyncStream.git", from: "1.1.0"),
+        .package(url: "https://github.com/rockmagma02/SyncStream.git", from: "1.1.2"),
         .package(url: "https://github.com/apple/swift-docc-plugin", branch: "main"),
     ],
     targets: [
