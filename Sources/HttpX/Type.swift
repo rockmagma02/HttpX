@@ -186,7 +186,7 @@ public enum AuthType {
     /// Authentication using a class that conforms to `BaseAuth`.
     case `class`(any BaseAuth)
     /// Authentication using a custom function.
-    case `func`((URLRequest?, Response?) -> (URLRequest, Bool))
+    case `func`((URLRequest) -> URLRequest)
     /// Basic authentication using a username and password.
     case basic((String, String))
 
