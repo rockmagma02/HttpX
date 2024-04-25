@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import Foundation
+import UniformTypeIdentifiers
 
 /// A class to handle multipart/form-data encoding which is often
 /// used for HTTP POST requests that require file upload along with data.
@@ -64,19 +65,31 @@ public class MultiPart {
             headers: [String: String] = [:]
         ) {
             self.path = path
-            self.filename = filename
-            self.contentType = contentType
             self.headers = headers
+
+            if let filename {
+                self.filename = filename
+            } else {
+                self.filename = path.lastPathComponent
+            }
+
+            if let contentType {
+                self.contentType = contentType
+            } else {
+                self.contentType = UTType(
+                    filenameExtension: path.pathExtension
+                )?.preferredMIMEType ?? "application/octet-stream"
+            }
         }
 
         // MARK: Public
 
         /// The URL path to the file.
         public var path: URL
-        /// The filename to be used in the multipart/form-data request. Optional.
-        public var filename: String?
-        /// The MIME type of the file. Optional.
-        public var contentType: String?
+        /// The filename to be used in the multipart/form-data request.
+        public var filename: String
+        /// The MIME type of the file.
+        public var contentType: String
         /// Additional headers to be included for this file part. defaults to an empty dictionary.
         public var headers: [String: String] = [:]
     }
@@ -237,14 +250,12 @@ public class MultiPart {
                 name = "name=\"\(name)\""
 
                 var parts = ["Content-Disposition: form-data; ", name]
-                if let filename = file.filename {
-                    var filename = filename
-                        .replacingOccurrences(of: "\"", with: "%22")
-                        .replacingOccurrences(of: "\\", with: "\\\\")
-                    filename = "filename=\"\(filename)\""
-                    parts.append("; ")
-                    parts.append(filename)
-                }
+                var filename = file.filename
+                    .replacingOccurrences(of: "\"", with: "%22")
+                    .replacingOccurrences(of: "\\", with: "\\\\")
+                filename = "filename=\"\(filename)\""
+                parts.append("; ")
+                parts.append(filename)
 
                 for (headerName, headerValue) in file.headers {
                     let key = "\r\n\(headerName): "
@@ -252,10 +263,9 @@ public class MultiPart {
                     parts.append(headerValue)
                 }
 
-                if let contentType = file.contentType {
-                    parts.append("\r\nContent-Type: ")
-                    parts.append(contentType)
-                }
+                let contentType = file.contentType
+                parts.append("\r\nContent-Type: ")
+                parts.append(contentType)
 
                 parts.append("\r\n\r\n")
                 headers = parts.joined().data(using: .utf8)!
