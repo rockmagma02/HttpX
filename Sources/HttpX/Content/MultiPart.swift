@@ -80,8 +80,6 @@ public class MultiPart {
                     filenameExtension: path.pathExtension
                 )?.preferredMIMEType ?? "application/octet-stream"
             }
-
-            self.headers["Content-Type"] = self.contentType
         }
 
         // MARK: Public
@@ -252,14 +250,12 @@ public class MultiPart {
                 name = "name=\"\(name)\""
 
                 var parts = ["Content-Disposition: form-data; ", name]
-                if let filename = file.filename {
-                    var filename = filename
-                        .replacingOccurrences(of: "\"", with: "%22")
-                        .replacingOccurrences(of: "\\", with: "\\\\")
-                    filename = "filename=\"\(filename)\""
-                    parts.append("; ")
-                    parts.append(filename)
-                }
+                var filename = file.filename
+                    .replacingOccurrences(of: "\"", with: "%22")
+                    .replacingOccurrences(of: "\\", with: "\\\\")
+                filename = "filename=\"\(filename)\""
+                parts.append("; ")
+                parts.append(filename)
 
                 for (headerName, headerValue) in file.headers {
                     let key = "\r\n\(headerName): "
@@ -267,10 +263,9 @@ public class MultiPart {
                     parts.append(headerValue)
                 }
 
-                if let contentType = file.contentType {
-                    parts.append("\r\nContent-Type: ")
-                    parts.append(contentType)
-                }
+                let contentType = file.contentType
+                parts.append("\r\nContent-Type: ")
+                parts.append(contentType)
 
                 parts.append("\r\n\r\n")
                 headers = parts.joined().data(using: .utf8)!
