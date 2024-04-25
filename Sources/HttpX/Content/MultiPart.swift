@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import Foundation
+import UniformTypeIdentifiers
 
 /// A class to handle multipart/form-data encoding which is often
 /// used for HTTP POST requests that require file upload along with data.
@@ -64,19 +65,33 @@ public class MultiPart {
             headers: [String: String] = [:]
         ) {
             self.path = path
-            self.filename = filename
-            self.contentType = contentType
             self.headers = headers
+
+            if let filename {
+                self.filename = filename
+            } else {
+                self.filename = path.lastPathComponent
+            }
+
+            if let contentType {
+                self.contentType = contentType
+            } else {
+                self.contentType = UTType(
+                    filenameExtension: path.pathExtension
+                )?.preferredMIMEType ?? "application/octet-stream"
+            }
+
+            self.headers["Content-Type"] = self.contentType
         }
 
         // MARK: Public
 
         /// The URL path to the file.
         public var path: URL
-        /// The filename to be used in the multipart/form-data request. Optional.
-        public var filename: String?
-        /// The MIME type of the file. Optional.
-        public var contentType: String?
+        /// The filename to be used in the multipart/form-data request.
+        public var filename: String
+        /// The MIME type of the file.
+        public var contentType: String
         /// Additional headers to be included for this file part. defaults to an empty dictionary.
         public var headers: [String: String] = [:]
     }
