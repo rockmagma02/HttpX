@@ -47,6 +47,30 @@ public class MultiPart {
 
     /// Represents a file to be included in a multipart/form-data request.
     public struct File {
+        // MARK: Lifecycle
+
+        /// Initializes a new instance of the File struct.
+        ///
+        /// - Parameters:
+        ///     - path: The URL path to the file.
+        ///     - filename: The filename to be used in the multipart/form-data request. Optional.
+        ///     - contentType: The MIME type of the file. Optional.
+        ///     - headers: Additional headers to be included for this file part. defaults
+        ///         to an empty dictionary.
+        public init(
+            path: URL,
+            filename: String? = nil,
+            contentType: String? = nil,
+            headers: [String: String] = [:]
+        ) {
+            self.path = path
+            self.filename = filename
+            self.contentType = contentType
+            self.headers = headers
+        }
+
+        // MARK: Public
+
         /// The URL path to the file.
         public var path: URL
         /// The filename to be used in the multipart/form-data request. Optional.
