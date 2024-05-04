@@ -18,6 +18,7 @@ import os.log
 
 // MARK: - Response
 
+// swiftlint:disable:next type_body_length
 public class Response: CustomStringConvertible, IteratorProtocol, Sequence, AsyncIteratorProtocol, AsyncSequence {
     // MARK: Lifecycle
 
@@ -311,6 +312,55 @@ public class Response: CustomStringConvertible, IteratorProtocol, Sequence, Asyn
     /// get the json from the response, in async way
     public func getJSON() async throws -> Any? {
         try? await JSONSerialization.jsonObject(with: try getData())
+    }
+
+    /// throw error for non-success status code
+    public func throwForStatus() throws {
+        if isSuccess {
+            return
+        }
+
+        let errorType: String
+        let code: URLError.Code
+        if isInformational {
+            errorType = "Informational"
+            code = URLError.informationResponse
+        } else if isRedirect {
+            errorType = "Redirect"
+            code = URLError.redirectionResponse
+        } else if isClientError {
+            errorType = "Client Error"
+            code = URLError.clientErrorResponse
+        } else if isServerError {
+            errorType = "Server Error"
+            code = URLError.serverErrorResponse
+        } else {
+            errorType = "Unknown Error"
+            code = URLError.unknown
+        }
+
+        let message =
+            if hasRedirectLocation {
+                """
+                \(errorType) "\(statusCode) \(status)" for url: "\(url)"
+                Redirect location: "\(value(forHTTPHeaderField: "Location") ?? "")"
+                For more information, check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/\(statusCode)
+                """
+            } else {
+                """
+                \(errorType) "\(statusCode) \(status)" for url: "\(url)"
+                For more information, check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/\(statusCode)
+                """
+            }
+
+        throw URLError(
+            code,
+            userInfo: [
+                NSLocalizedDescriptionKey: message,
+                NSURLErrorFailingURLErrorKey: url,
+                NSURLErrorFailingURLStringErrorKey: url.absoluteString,
+            ]
+        )
     }
 
     // MARK: Internal
