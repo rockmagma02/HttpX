@@ -186,7 +186,14 @@ public class BaseClient {
     ) throws -> URLRequest {
         let url = url == nil ? baseURL : try Self.mergeURL(url!, original: baseURL)
         guard var url else {
-            throw HttpXError.invalidURL(message: "the request URL is invalid or conflicting with the base URL.")
+            throw URLError(
+                .badURL,
+                userInfo: [
+                    NSLocalizedDescriptionKey: "the request URL is invalid or conflicting with the base URL.",
+                    NSURLErrorFailingURLStringErrorKey:
+                        "url: \(url?.absoluteString ?? ""),\nbaseUrl: \(baseURL?.absoluteString ?? "")",
+                ]
+            )
         }
 
         let headers = headers == nil ? self.headers : Self.mergeHeaders(headers!, original: self.headers)
@@ -214,7 +221,14 @@ public class BaseClient {
             }
             return newURL
         }
-        throw HttpXError.invalidURL(message: "the request URL is invalid or conflicting with the base URL.")
+        throw URLError(
+            .badURL,
+            userInfo: [
+                NSLocalizedDescriptionKey: "the request URL is invalid or conflicting with the base URL.",
+                NSURLErrorFailingURLStringErrorKey:
+                    "url: \(newURL?.absoluteString ?? ""),\nbaseUrl: \(original?.absoluteString ?? "")",
+            ]
+        )
     }
 
     internal static func mergeHeaders(_ new: HeadersType, original: [(String, String)]) -> [(String, String)] {
@@ -244,7 +258,7 @@ public class BaseClient {
     }
 
     internal func buildRedirectRequest(request: URLRequest, response: Response) throws -> URLRequest {
-        let method = try redirectMethod(request: request, response: response)
+        let method = redirectMethod(request: request, response: response)
         let url = try redirectURL(request: request, response: response)
         let headers = redirectHeaders(request: request, url: url, method: method)
         let content = redirectContent(request: request, method: method)
@@ -258,7 +272,7 @@ public class BaseClient {
         return request
     }
 
-    internal func redirectMethod(request: URLRequest, response: Response) throws -> HTTPMethod {
+    internal func redirectMethod(request: URLRequest, response: Response) -> HTTPMethod {
         let methodString = request.httpMethod!
         let statusCode = response.statusCode
         let seeOther = 303
@@ -282,7 +296,13 @@ public class BaseClient {
     internal func redirectURL(request: URLRequest, response: Response) throws -> URL {
         if let location = response.value(forHTTPHeaderField: "Location") {
             guard var newURL = URL(string: location) else {
-                throw HttpXError.redirectError(message: "The Redirect URL is invalid.")
+                throw URLError(
+                    .redirectToNonExistentLocation,
+                    userInfo: [
+                        NSLocalizedDescriptionKey: "The Redirect URL is invalid.",
+                        NSURLErrorFailingURLStringErrorKey: location,
+                    ]
+                )
             }
 
             var newURLComponents = URLComponents(url: newURL, resolvingAgainstBaseURL: true)!
@@ -304,7 +324,12 @@ public class BaseClient {
 
             return newURLComponents.url!
         }
-        throw HttpXError.invalidResponse(message: "The response has no Location header.")
+        throw URLError(
+            .redirectToNonExistentLocation,
+            userInfo: [
+                NSLocalizedDescriptionKey: "The response has no Location header.",
+            ]
+        )
     }
 
     internal func redirectHeaders(request: URLRequest, url: URL, method: HTTPMethod) -> [(String, String)] {

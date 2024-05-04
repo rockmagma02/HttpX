@@ -144,10 +144,17 @@ public class SyncClient: BaseClient {
     ) throws -> Response {
         var request = request
         var history = history
-        var response = Response(url: request.url!, error: HttpXError.invalidResponse())
+        var response = Response(url: request.url!, error: URLError(.unknown))
         while true {
             if history.count >= maxRedirects {
-                throw HttpXError.redirectError(message: "Exceeded maximum number of redirects")
+                throw URLError(
+                    .httpTooManyRedirects,
+                    userInfo: [
+                        NSURLErrorFailingURLErrorKey: request.url!,
+                        NSURLErrorFailingURLStringErrorKey: request.url!.absoluteString,
+                        NSLocalizedDescriptionKey: "Too many HTTP redirects. Max redirects: \(maxRedirects)",
+                    ]
+                )
             }
 
             eventHooks.request.forEach { $0(&request) }

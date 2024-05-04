@@ -271,14 +271,26 @@ private extension DigestAuth {
             let realm = headerDict["realm"],
             let nonce = headerDict["nonce"]
         else {
-            throw AuthError.invalidDigestAuth(message: "The realm or nonce is missing in the header")
+            throw URLError(
+                .userCancelledAuthentication,
+                userInfo: [
+                    NSLocalizedDescriptionKey:
+                        "The auth is canceled because the realm or nonce is missing in the header",
+                ]
+            )
         }
 
         let opaque = headerDict["opaque"]
         let qop = headerDict["qop"]
         let algorithm = headerDict["algorithm"] ?? "MD5"
         guard algorithmsToHashFunction.keys.contains(algorithm.uppercased()) else {
-            throw AuthError.invalidDigestAuth(message: "The algorithm is unknown")
+            throw URLError(
+                .userCancelledAuthentication,
+                userInfo: [
+                    NSLocalizedDescriptionKey:
+                        "The auth is canceled because the algorithm in the header is not supported",
+                ]
+            )
         }
         return DigestAuthChallenge(realm: realm, nonce: nonce, algorithm: algorithm, opaque: opaque, qop: qop)
     }
@@ -359,10 +371,18 @@ private extension DigestAuth {
         }
 
         if qops.contains("auth-int") {
-            throw AuthError.qopNotSupported(message: "The auth-int will be support in the future")
+            throw URLError(
+                .userCancelledAuthentication, userInfo: [
+                    NSLocalizedDescriptionKey: "The auth is canceled because the qop \"auth-int\" is not supported yet",
+                ]
+            )
         }
 
-        throw AuthError.invalidDigestAuth(message: "The qop is invalid")
+        throw URLError(
+            .userCancelledAuthentication, userInfo: [
+                NSLocalizedDescriptionKey: "The auth is canceled because the qop in the header is invalid",
+            ]
+        )
     }
 
     func getHeaderValue(headerFields: [String: String]) -> String {

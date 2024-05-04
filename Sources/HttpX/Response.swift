@@ -204,7 +204,7 @@ public class Response: CustomStringConvertible, IteratorProtocol, Sequence, Asyn
             errorPrivate
         }
         set {
-            errorPrivate = newValue == nil ? nil : buildError(newValue!)
+            errorPrivate = newValue
         }
     }
 
