@@ -269,7 +269,7 @@ final class DigestAuthTests: XCTestCase {
 
         XCTAssertThrowsError(try authFlow.send(response)) { error in
             let error = (error as! Terminated).error
-            XCTAssertEqual(error as? AuthError, AuthError.invalidDigestAuth())
+            XCTAssertEqual((error as? URLError)?.code, URLError(.userCancelledAuthentication).code)
         }
     }
 
@@ -287,7 +287,7 @@ final class DigestAuthTests: XCTestCase {
 
         XCTAssertThrowsError(try authFlow.send(response)) { error in
             let error = (error as! Terminated).error
-            XCTAssertEqual(error as? AuthError, AuthError.qopNotSupported())
+            XCTAssertEqual((error as? URLError)?.code, URLError(.userCancelledAuthentication).code)
         }
 
         auth = DigestAuth(username: "user", password: "pass")
@@ -303,7 +303,7 @@ final class DigestAuthTests: XCTestCase {
 
         XCTAssertThrowsError(try authFlow.send(response)) { error in
             let error = (error as! Terminated).error
-            XCTAssertEqual(error as? AuthError, AuthError.invalidDigestAuth())
+            XCTAssertEqual((error as? URLError)?.code, URLError(.userCancelledAuthentication).code)
         }
     }
 
@@ -321,7 +321,7 @@ final class DigestAuthTests: XCTestCase {
 
         XCTAssertThrowsError(try authFlow.send(response)) { error in
             let error = (error as! Terminated).error
-            XCTAssertEqual(error as? AuthError, AuthError.invalidDigestAuth())
+            XCTAssertEqual((error as? URLError)?.code, URLError(.userCancelledAuthentication).code)
         }
     }
 

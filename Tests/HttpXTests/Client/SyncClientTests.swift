@@ -36,7 +36,7 @@ final class SyncClientTests: XCTestCase {
         XCTAssertThrowsError(
             try client.request(method: .get, url: URLType.string("/absolute-redirect/3"), followRedirects: true)
         ) {
-            XCTAssertEqual($0 as? HttpXError, HttpXError.redirectError())
+            XCTAssertEqual(($0 as? URLError)?.code, URLError(.httpTooManyRedirects).code)
         }
     }
 
@@ -65,7 +65,7 @@ final class SyncClientTests: XCTestCase {
                 request: URLRequest(url: URL(string: "https://httpbin.org/delay/10")!, timeoutInterval: 1)
             )
         ) { error in
-            XCTAssertEqual(error as? HttpXError, HttpXError.networkError(message: "", code: -1_001))
+            XCTAssertEqual(error as? URLError, URLError(.timedOut))
         }
     }
 }

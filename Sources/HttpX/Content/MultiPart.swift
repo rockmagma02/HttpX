@@ -215,7 +215,13 @@ public class MultiPart {
             self.file = file
 
             guard let stream = InputStream(url: self.file.path) else {
-                throw ContentError.pathNotFound
+                throw URLError(
+                    .fileDoesNotExist,
+                    userInfo: [
+                        NSLocalizedDescriptionKey: "File does not exist at path: \(self.file.path)",
+                        NSURLErrorFailingURLStringErrorKey: self.file.path,
+                    ]
+                )
             }
             dataStream = stream
         }
@@ -303,6 +309,8 @@ public class MultiPart {
                         fields.append(DataField(name: name, value: item, encoding: encoding))
                     } else if let item = item as? Data {
                         fields.append(DataField(name: name, value: item))
+                    } else {
+                        fatalError("Unsupported type pass to MultiPart.init()")
                     }
                 }
             } else if let value = value as? String {
@@ -310,7 +318,7 @@ public class MultiPart {
             } else if let value = value as? Data {
                 fields.append(DataField(name: name, value: value))
             } else {
-                throw ContentError.unsupportedType
+                fatalError("Unsupported type pass to MultiPart.init()")
             }
         }
 

@@ -38,7 +38,7 @@ final class AsyncClientTests: XCTestCase {
             _ = try await client.request(method: .get, url: URLType.string("/absolute-redirect/3"), followRedirects: true)
         } catch {
             expectation.fulfill()
-            XCTAssertEqual(error as? HttpXError, HttpXError.redirectError())
+            XCTAssertEqual((error as? URLError)?.code, URLError(.httpTooManyRedirects).code)
         }
         await fulfillment(of: [expectation], timeout: 5)
     }
@@ -69,7 +69,7 @@ final class AsyncClientTests: XCTestCase {
                 request: URLRequest(url: URL(string: "https://httpbin.org/delay/10")!, timeoutInterval: 1)
             )
         } catch {
-            XCTAssertEqual(error as? HttpXError, HttpXError.networkError(message: "", code: -1_001))
+            XCTAssertEqual(error as? URLError, URLError(.timedOut))
             expectation.fulfill()
         }
         await fulfillment(of: [expectation], timeout: 5)

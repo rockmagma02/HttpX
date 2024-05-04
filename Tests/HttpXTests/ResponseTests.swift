@@ -37,9 +37,9 @@ final class ResponseTests: XCTestCase {
         XCTAssertEqual(response2.allHeaderFields, ["Key": "value"])
 
         // init with error
-        let error = HttpXError.invalidURL(message: "")
+        let error = URLError(.badURL)
         let response3 = Response(url: URL(string: "www.example.com")!, error: error)
-        XCTAssertEqual(response3.error as? HttpXError, error)
+        XCTAssertEqual(response3.error as? URLError, error)
         XCTAssertEqual(response3.url, URL(string: "www.example.com")!)
         XCTAssertEqual(response3.statusCode, -1)
     }
@@ -86,8 +86,8 @@ final class ResponseTests: XCTestCase {
     }
 
     func testDescription() {
-        let response = Response(url: URL(string: "http://example.com")!, error: HttpXError.invalidURL())
-        XCTAssertEqual(response.description, "<Response [Error: invalidURL(message: \"\")]>")
+        let response = Response(url: URL(string: "http://example.com")!, error: URLError(.badURL))
+        XCTAssertTrue(response.description.hasPrefix("<Response [Error:"))
 
         let response2 = Response(url: URL(string: "http://example.com")!, statusCode: 200, headers: [:])
         XCTAssertEqual(response2?.description, "<Response [200 no error]>")
@@ -123,8 +123,8 @@ final class ResponseTests: XCTestCase {
         let response = Response(url: URL(string: "http://example.com")!, statusCode: 200, headers: [:])!
         XCTAssertNil(response.error)
 
-        response.error = HttpXError.invalidURL()
-        XCTAssertEqual(response.error as? HttpXError, HttpXError.invalidURL())
+        response.error = URLError(.badURL)
+        XCTAssertEqual(response.error as? URLError, URLError(.badURL))
 
         response.error = nil
         XCTAssertNil(response.error)
@@ -215,5 +215,32 @@ final class ResponseTests: XCTestCase {
         XCTAssertEqual(text, "{\"key\": \"value\"}")
         json = try await response3.getJSON()
         XCTAssertEqual(json as? [String: String], ["key": "value"])
+    }
+
+    func testThrowForStatusSuccess() throws {
+        let response = Response(url: URL(string: "https://example.com")!, statusCode: 200)!
+        XCTAssertNoThrow(try response.throwForStatus())
+    }
+
+    func testThrowForStatusError() {
+        let response = Response(url: URL(string: "https://example.com")!, statusCode: 100)!
+        XCTAssertThrowsError(try response.throwForStatus()) { error in
+            XCTAssertEqual((error as? URLError)?.code, URLError(.InformationalResponse).code)
+        }
+
+        let response2 = Response(url: URL(string: "https://example.com")!, statusCode: 300)!
+        XCTAssertThrowsError(try response2.throwForStatus()) { error in
+            XCTAssertEqual((error as? URLError)?.code, URLError(.RedirectionResponse).code)
+        }
+
+        let response3 = Response(url: URL(string: "https://example.com")!, statusCode: 404)!
+        XCTAssertThrowsError(try response3.throwForStatus()) { error in
+            XCTAssertEqual((error as? URLError)?.code, URLError(.ClientErrorResponse).code)
+        }
+
+        let response4 = Response(url: URL(string: "https://example.com")!, statusCode: 500)!
+        XCTAssertThrowsError(try response4.throwForStatus()) { error in
+            XCTAssertEqual((error as? URLError)?.code, URLError(.ServerErrorResponse).code)
+        }
     }
 }
