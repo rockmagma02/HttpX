@@ -216,4 +216,31 @@ final class ResponseTests: XCTestCase {
         json = try await response3.getJSON()
         XCTAssertEqual(json as? [String: String], ["key": "value"])
     }
+
+    func testThrowForStatusSuccess() throws {
+        let response = Response(url: URL(string: "https://example.com")!, statusCode: 200)!
+        XCTAssertNoThrow(try response.throwForStatus())
+    }
+
+    func testThrowForStatusError() {
+        let response = Response(url: URL(string: "https://example.com")!, statusCode: 100)!
+        XCTAssertThrowsError(try response.throwForStatus()) { error in
+            XCTAssertEqual((error as? URLError)?.code, URLError(.InformationalResponse).code)
+        }
+
+        let response2 = Response(url: URL(string: "https://example.com")!, statusCode: 300)!
+        XCTAssertThrowsError(try response2.throwForStatus()) { error in
+            XCTAssertEqual((error as? URLError)?.code, URLError(.RedirectionResponse).code)
+        }
+
+        let response3 = Response(url: URL(string: "https://example.com")!, statusCode: 404)!
+        XCTAssertThrowsError(try response3.throwForStatus()) { error in
+            XCTAssertEqual((error as? URLError)?.code, URLError(.ClientErrorResponse).code)
+        }
+
+        let response4 = Response(url: URL(string: "https://example.com")!, statusCode: 500)!
+        XCTAssertThrowsError(try response4.throwForStatus()) { error in
+            XCTAssertEqual((error as? URLError)?.code, URLError(.ServerErrorResponse).code)
+        }
+    }
 }
