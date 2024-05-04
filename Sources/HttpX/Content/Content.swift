@@ -22,6 +22,8 @@ public enum Content {
     case json(Any)
     /// Represents multipart form data.
     case multipart(MultiPart)
+    /// Represents a stream of data.
+    case stream(InputStream)
     /// Represents raw text data, should provide Content-type manually.
     case text(String)
     /// Represents URL encoded form data.
@@ -40,6 +42,9 @@ public enum Content {
         case let .data(data):
             request.httpBody = data
             request.setValue(data.count.description, forHTTPHeaderField: "Content-Length")
+
+        case let .stream(stream):
+            request.httpBodyStream = stream
 
         case let .text(text):
             request.httpBody = text.data(using: encode)
