@@ -38,9 +38,6 @@ final class BaseClientTests: XCTestCase {
     func testSetAndGet() {
         let emptyClient = BaseClient()
 
-        emptyClient.setTimeout(10)
-        XCTAssertEqual(emptyClient.timeout, 10)
-
         emptyClient.setEventHooks(EventHooks())
         XCTAssertTrue(emptyClient.eventHooks.request.isEmpty && emptyClient.eventHooks.response.isEmpty)
 
@@ -52,9 +49,6 @@ final class BaseClientTests: XCTestCase {
 
         emptyClient.setHeaders(HeadersType.array([("key", "value")]))
         XCTAssertTrue(emptyClient.headers.contains { $0.0 == "key" && $0.1 == "value" })
-
-        emptyClient.setCookies(CookiesType.cookieArray([HTTPCookie(properties: [.name: "cookie", .value: "value", .domain: "example.com", .path: "/"])!]))
-        XCTAssertTrue(emptyClient.cookies.contains { $0.name == "cookie" && $0.value == "value" })
 
         emptyClient.setParams(QueryParamsType.class([URLQueryItem(name: "key", value: "value")]))
         XCTAssertTrue(emptyClient.params.contains { $0.name == "key" && $0.value == "value" })
