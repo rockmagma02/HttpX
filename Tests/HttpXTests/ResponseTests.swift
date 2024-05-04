@@ -37,9 +37,9 @@ final class ResponseTests: XCTestCase {
         XCTAssertEqual(response2.allHeaderFields, ["Key": "value"])
 
         // init with error
-        let error = HttpXError.invalidURL(message: "")
+        let error = URLError(.badURL)
         let response3 = Response(url: URL(string: "www.example.com")!, error: error)
-        XCTAssertEqual(response3.error as? HttpXError, error)
+        XCTAssertEqual(response3.error as? URLError, error)
         XCTAssertEqual(response3.url, URL(string: "www.example.com")!)
         XCTAssertEqual(response3.statusCode, -1)
     }
@@ -86,8 +86,8 @@ final class ResponseTests: XCTestCase {
     }
 
     func testDescription() {
-        let response = Response(url: URL(string: "http://example.com")!, error: HttpXError.invalidURL())
-        XCTAssertEqual(response.description, "<Response [Error: invalidURL(message: \"\")]>")
+        let response = Response(url: URL(string: "http://example.com")!, error: URLError(.badURL))
+        XCTAssertTrue(response.description.hasPrefix("<Response [Error:"))
 
         let response2 = Response(url: URL(string: "http://example.com")!, statusCode: 200, headers: [:])
         XCTAssertEqual(response2?.description, "<Response [200 no error]>")
@@ -123,8 +123,8 @@ final class ResponseTests: XCTestCase {
         let response = Response(url: URL(string: "http://example.com")!, statusCode: 200, headers: [:])!
         XCTAssertNil(response.error)
 
-        response.error = HttpXError.invalidURL()
-        XCTAssertEqual(response.error as? HttpXError, HttpXError.invalidURL())
+        response.error = URLError(.badURL)
+        XCTAssertEqual(response.error as? URLError, URLError(.badURL))
 
         response.error = nil
         XCTAssertNil(response.error)

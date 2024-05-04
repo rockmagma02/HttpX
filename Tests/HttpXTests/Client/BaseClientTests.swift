@@ -64,14 +64,14 @@ final class BaseClientTests: XCTestCase {
     func testInvalidURL() {
         let client = BaseClient()
         XCTAssertThrowsError(try client.buildRequest(method: .get)) {
-            XCTAssertEqual($0 as? HttpXError, HttpXError.invalidURL())
+            XCTAssertEqual(($0 as? URLError)?.code, URLError(.badURL).code)
         }
     }
 
     func testInvalidMergeURL() {
         // newURL empty
         XCTAssertThrowsError(try BaseClient.mergeURL(URLType.string(""), original: nil)) {
-            XCTAssertEqual($0 as? HttpXError, HttpXError.invalidURL())
+            XCTAssertEqual(($0 as? URLError)?.code, URLError(.badURL).code)
         }
     }
 
@@ -95,12 +95,12 @@ final class BaseClientTests: XCTestCase {
         request = URLRequest(url: URL(string: "https://example.com")!)
         request.httpMethod = "GET"
         response = Response(url: request.url!, statusCode: 303)!
-        XCTAssertEqual(try client.redirectMethod(request: request, response: response), .get)
+        XCTAssertEqual(client.redirectMethod(request: request, response: response), .get)
 
         request = URLRequest(url: URL(string: "https://example.com")!)
         request.httpMethod = "DELETE"
         response = Response(url: request.url!, statusCode: 301)!
-        XCTAssertEqual(try client.redirectMethod(request: request, response: response), .get)
+        XCTAssertEqual(client.redirectMethod(request: request, response: response), .get)
     }
 
     func testRedirectURL() throws {
@@ -114,7 +114,7 @@ final class BaseClientTests: XCTestCase {
         request.httpMethod = "GET"
         response = Response(url: request.url!, statusCode: 301, headers: ["Location": ""])!
         XCTAssertThrowsError(try client.redirectURL(request: request, response: response)) {
-            XCTAssertEqual($0 as? HttpXError, HttpXError.redirectError())
+            XCTAssertEqual(($0 as? URLError)?.code, URLError(.redirectToNonExistentLocation).code)
         }
 
         // empty host
@@ -136,7 +136,7 @@ final class BaseClientTests: XCTestCase {
         request.httpMethod = "GET"
         response = Response(url: request.url!, statusCode: 301)!
         XCTAssertThrowsError(try client.redirectURL(request: request, response: response)) {
-            XCTAssertEqual($0 as? HttpXError, HttpXError.invalidResponse())
+            XCTAssertEqual(($0 as? URLError)?.code, URLError(.redirectToNonExistentLocation).code)
         }
     }
 

@@ -685,7 +685,7 @@ internal final class RedirectsTests: XCTestCase {
 //                request: URLRequest(url: URL(string: "https://httpbin.org/delay/10")!, timeoutInterval: 1)
 //            )
 //        ) { error in
-//            XCTAssertEqual(error as? HttpXError, HttpXError.networkError(message: "", code: -1_001))
+//            XCTAssertEqual((error as? URLError)?.code, URLError(.timedOut).code)
 //        }
 //    }
 //

@@ -668,7 +668,7 @@ internal final class AsyncRedirectsTests: XCTestCase {
 //                request: URLRequest(url: URL(string: "https://httpbin.org/delay/10")!, timeoutInterval: 1)
 //            )
 //        } catch {
-//            XCTAssertEqual(error as? HttpXError, HttpXError.networkError(message: "", code: -1_001))
+//            XCTAssertEqual((error as? URLError)?.code, URLError(.timedOut).code)
 //            expectation.fulfill()
 //        }
 //        await fulfillment(of: [expectation], timeout: 5)
@@ -683,7 +683,7 @@ internal final class AsyncRedirectsTests: XCTestCase {
 //                request: URLRequest(url: URL(string: "https://httpbin.org/delay/10")!, timeoutInterval: 1)
 //            )
 //        } catch {
-//            XCTAssertEqual(error as? HttpXError, HttpXError.networkError(message: "", code: -1_001))
+//            XCTAssertEqual((error as? URLError)?.code, URLError(.timedOut).code)
 //            expectation.fulfill()
 //        }
 //        await fulfillment(of: [expectation], timeout: 5)

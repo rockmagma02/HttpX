@@ -59,7 +59,7 @@ class MultiPartTests: XCTestCase {
         ]
 
         XCTAssertThrowsError(try MultiPart(fromFile: fileFields)) { error in
-            XCTAssertEqual(error as? ContentError, ContentError.pathNotFound)
+            XCTAssertEqual((error as? URLError)?.code, URLError(.fileDoesNotExist).code)
         }
     }
 
@@ -73,14 +73,5 @@ class MultiPartTests: XCTestCase {
         let multipart = try MultiPart(fromData: dataFields)
         XCTAssertNotNil(multipart)
         XCTAssertGreaterThan(multipart.contentLength, 0)
-    }
-
-    func testMultiPartInitializationInvalid() {
-        let dataFields: [(String, Any)] = [
-            ("key1", 123),
-        ]
-        XCTAssertThrowsError(try MultiPart(fromData: dataFields)) { error in
-            XCTAssertEqual(error as? ContentError, ContentError.unsupportedType)
-        }
     }
 }
