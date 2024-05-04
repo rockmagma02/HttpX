@@ -14,9 +14,12 @@
 
 import Foundation
 
-private let kDefaultTimeoutNumber = 30
-/// Default timeout for network requests in seconds.
-public let kDefaultTimeout = TimeInterval(kDefaultTimeoutNumber)
+/// Default timeout for network connection in seconds.
+public let kDefaultConnectTimeout = 30.0
+/// Default timeout for request wait for next additional data in seconds.
+public let kDefaultRequestTimeout = 60.0
+/// Default timeout for entire resource download in seconds.
+public let kDefaultResourceTimeout = 24 * 60 * 60.0 // swiftlint:disable:this no_magic_numbers
 /// Maximum number of redirects allowed for a network request.
 public let kDefaultMaxRedirects = 20
 

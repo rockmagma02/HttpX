@@ -34,7 +34,7 @@ public class BaseClient {
     ///         be managed by the `URLSession` instance. Defaults to `nil`.
     ///   - cookieIdentifier: The identifier for the cookies. Defaults to `nil`,
     ///         when is nil, will use a random UUID string.
-    ///   - timeout: The timeout interval for the request. Defaults to `kDefaultTimeout`, i.e., 5 seconds.
+    ///   - timeout: The timeout interval for the request.
     ///   - followRedirects: A Boolean value indicating whether the client should
     ///        follow HTTP redirects. Defaults to `false`.
     ///   - maxRedirects: The maximum number of redirects to follow. Defaults to `kDefaultMaxRedirects`, i.e., 20.
@@ -43,18 +43,20 @@ public class BaseClient {
     ///   - baseURL: The base URL for the network requests. Defaults to `nil`.
     ///         Every Requests' URL will be merged with this URL before sending.
     ///   - defaultEncoding: The default string encoding for the request. Defaults to `.utf8`.
+    ///   - configuration: The configuration for the `URLSession`. Defaults to `.default`.
     public init(
         auth: AuthType? = nil,
         params: QueryParamsType? = nil,
         headers: HeadersType? = nil,
         cookies: CookiesType? = nil,
         cookieIdentifier: String? = nil,
-        timeout: TimeInterval = kDefaultTimeout,
+        timeout: Timeout = .init(),
         followRedirects: Bool = false,
         maxRedirects: Int = kDefaultMaxRedirects,
         eventHooks: EventHooks = EventHooks(),
         baseURL: URLType? = nil,
-        defaultEncoding: String.Encoding = .utf8
+        defaultEncoding: String.Encoding = .utf8,
+        configuration: URLSessionConfiguration = .default
     ) {
         baseURLPrivate = baseURL?.buildURL()
         authPrivate = auth?.buildAuth() ?? EmptyAuth()
@@ -65,8 +67,8 @@ public class BaseClient {
         followRedirectsPrivate = followRedirects
         eventHooksPrivate = eventHooks
         defaultEncodingPrivate = defaultEncoding
+        configurationPrivate = configuration
 
-        let configuration = URLSessionConfiguration.default
         self.cookieIdentifier = cookieIdentifier ?? "HttpX.Client.\(UUID().uuidString)"
         let cookieStorage = HTTPCookieStorage.sharedCookieStorage(forGroupContainerIdentifier: self.cookieIdentifier)
         for cookie in cookies?.buildCookies() ?? [] {
@@ -75,6 +77,8 @@ public class BaseClient {
 
         let delegate = HttpXDelegate()
         configuration.httpCookieStorage = cookieStorage
+        configuration.timeoutIntervalForRequest = timeoutPrivate.request
+        configuration.timeoutIntervalForResource = timeoutPrivate.resource
         session = URLSession(configuration: configuration, delegate: delegate, delegateQueue: nil)
     }
 
@@ -83,7 +87,7 @@ public class BaseClient {
     // MARK: Public
 
     /// Returns the timeout interval for the request.
-    public var timeout: TimeInterval { timeoutPrivate }
+    public var timeout: Timeout { timeoutPrivate }
 
     /// Returns the event hooks allowing for observing and mutating request and response.
     public var eventHooks: EventHooks { eventHooksPrivate }
@@ -114,9 +118,12 @@ public class BaseClient {
     /// Returns the default string encoding for the request.
     public var defaultEncoding: String.Encoding { defaultEncodingPrivate }
 
-    /// Sets the timeout interval for the request.
-    public func setTimeout(_ timeout: TimeInterval) {
-        timeoutPrivate = timeout
+    /// Returns the configuration for the client.
+    public var configuration: URLSessionConfiguration { configurationPrivate }
+
+    /// Returns the cookies storage for the client.
+    public var cookieStorage: HTTPCookieStorage? {
+        session.configuration.httpCookieStorage
     }
 
     /// Sets the event hooks allowing for observing and mutating request and response.
@@ -137,21 +144,6 @@ public class BaseClient {
     /// Sets the HTTP headers to be sent with every request.
     public func setHeaders(_ headers: HeadersType) {
         headersPrivate = headers.buildHeaders()
-    }
-
-    /// Sets the cookies to be sent with every request.
-    public func setCookies(_ cookies: CookiesType) {
-        let cookieStorage = HTTPCookieStorage.sharedCookieStorage(forGroupContainerIdentifier: cookieIdentifier)
-        for cookie in cookies.buildCookies() {
-            cookieStorage.setCookie(cookie)
-        }
-        let configuration = session.configuration
-        configuration.httpCookieStorage = cookieStorage
-        session = URLSession(
-            configuration: configuration,
-            delegate: session.delegate,
-            delegateQueue: session.delegateQueue
-        )
     }
 
     /// Sets the query parameters to be appended to every request.
@@ -183,7 +175,6 @@ public class BaseClient {
     ///   - content: The content to be sent with the request. If nil, no content is sent.
     ///   - params: The query parameters to be appended to the URL. If nil, default parameters are used.
     ///   - headers: The headers to be added to the request. If nil, default headers are used.
-    ///   - timeout: The timeout interval for the request. If nil, the default timeout is used.
     /// - Returns: A configured URLRequest instance.
     /// - Throws: `HttpXError.invalidURL` if the URL is invalid or cannot be constructed.
     public func buildRequest(
@@ -191,8 +182,7 @@ public class BaseClient {
         url: URLType? = nil,
         content: Content? = nil,
         params: QueryParamsType? = nil,
-        headers: HeadersType? = nil,
-        timeout: TimeInterval? = nil
+        headers: HeadersType? = nil
     ) throws -> URLRequest {
         let url = url == nil ? baseURL : try Self.mergeURL(url!, original: baseURL)
         guard var url else {
@@ -201,10 +191,9 @@ public class BaseClient {
 
         let headers = headers == nil ? self.headers : Self.mergeHeaders(headers!, original: self.headers)
         let params = params == nil ? self.params : Self.mergeQueryParams(params!, original: self.params)
-        let timeout = timeout ?? self.timeout
 
         try url.mergeQueryItems(params)
-        var request = URLRequest(url: url, timeoutInterval: timeout)
+        var request = URLRequest(url: url, timeoutInterval: timeout.connect)
         request.httpMethod = method.rawValue
         for (key, value) in headers {
             request.addValue(value, forHTTPHeaderField: key)
@@ -351,10 +340,12 @@ public class BaseClient {
     private var authPrivate: BaseAuth
     private var paramsPrivate: [URLQueryItem] = []
     private var headersPrivate: [(String, String)] = []
-    private var timeoutPrivate: TimeInterval
     private var followRedirectsPrivate: Bool
     private var maxRedirectsPrivate: Int
     private var eventHooksPrivate: EventHooks
     private var defaultEncodingPrivate: String.Encoding
     private var cookieIdentifier: String
+    private var configurationPrivate: URLSessionConfiguration
+
+    private var timeoutPrivate: Timeout
 }
