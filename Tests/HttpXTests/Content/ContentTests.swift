@@ -38,6 +38,16 @@ class ContentTests: XCTestCase {
         XCTAssertEqual(request.value(forHTTPHeaderField: "Content-Length"), testText.count.description)
     }
 
+    func testEncodeContentWithStream() throws {
+        var request = URLRequest(url: URL(string: "https://example.com")!)
+        let stream = InputStream(data: "Test Stream".data(using: .utf8)!)
+        let content = Content.stream(stream)
+
+        try content.encodeContent(request: &request)
+
+        XCTAssertEqual(request.httpBodyStream, stream)
+    }
+
     func testEncodeContentWithURLEncoded() throws {
         var request = URLRequest(url: URL(string: "https://example.com")!)
         let testData = [("key1", "value1"), ("key2", "value2")]
