@@ -353,7 +353,7 @@ public class Response: CustomStringConvertible, IteratorProtocol, Sequence, Asyn
                 """
             }
 
-        throw URLError(
+        let error = URLError(
             code,
             userInfo: [
                 NSLocalizedDescriptionKey: message,
@@ -361,6 +361,8 @@ public class Response: CustomStringConvertible, IteratorProtocol, Sequence, Asyn
                 NSURLErrorFailingURLStringErrorKey: url.absoluteString,
             ]
         )
+        self.error = error
+        throw error
     }
 
     // MARK: Internal
