@@ -39,7 +39,7 @@ public class Response: CustomStringConvertible, IteratorProtocol, Sequence, Asyn
         }
         statusCodePrivate = statusCode
         for (key, value) in headers {
-            headersPrivate[standardlizeHeaderKey(key)] = value
+            headersPrivate[standardizeHeaderKey(key)] = value
         }
     }
 
@@ -59,7 +59,7 @@ public class Response: CustomStringConvertible, IteratorProtocol, Sequence, Asyn
             guard let key = key as? String, let value = value as? String else {
                 continue
             }
-            headersPrivate[standardlizeHeaderKey(key)] = value
+            headersPrivate[standardizeHeaderKey(key)] = value
         }
     }
 
@@ -216,7 +216,7 @@ public class Response: CustomStringConvertible, IteratorProtocol, Sequence, Asyn
 
     /// Get the value of the header field, the field name is case-insensitive.
     public func value(forHTTPHeaderField field: String) -> String? {
-        let key = standardlizeHeaderKey(field)
+        let key = standardizeHeaderKey(field)
         return headersPrivate[key]
     }
 
@@ -362,7 +362,7 @@ public class Response: CustomStringConvertible, IteratorProtocol, Sequence, Asyn
         }
     }
 
-    private func standardlizeHeaderKey(_ key: String) -> String {
+    private func standardizeHeaderKey(_ key: String) -> String {
         key.capitalized
     }
 }
