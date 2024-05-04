@@ -15,7 +15,6 @@
 @testable import HttpX
 import XCTest
 
-@available(macOS 10.15, *)
 class OAuthTests: XCTestCase {
     func testAuthFlow_withValidRequest_returnsModifiedRequestAndTrue() throws {
         // Given

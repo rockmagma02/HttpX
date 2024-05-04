@@ -17,7 +17,6 @@ import Foundation
 // MARK: - BaseClient
 
 /// The `BaseClient` class is the base class for making HTTP requests.
-@available(macOS 10.15, *)
 public class BaseClient {
     // MARK: Lifecycle
 

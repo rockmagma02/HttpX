@@ -181,7 +181,6 @@ public enum CookiesType {
 // MARK: - AuthType
 
 /// Represents the type of authentication used in network requests.
-@available(macOS 10.15, *)
 public enum AuthType {
     /// Authentication using a class that conforms to `BaseAuth`.
     case `class`(any BaseAuth)
@@ -210,7 +209,6 @@ public enum AuthType {
 // MARK: - EventHooks
 
 /// Represents hooks for modifying requests and responses in the networking layer.
-@available(macOS 10.15, *)
 public struct EventHooks {
     // MARK: Lifecycle
 

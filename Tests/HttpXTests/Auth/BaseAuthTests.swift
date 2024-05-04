@@ -18,7 +18,6 @@ import XCTest
 
 // MARK: - BaseAuthTests
 
-@available(macOS 10.15, *)
 final class BaseAuthTests: XCTestCase {
     func testSyncAuthFlowWithRequestBody() throws {
         let mockAuth = MockBaseAuth(needRequestBody: true, needResponseBody: false)
@@ -67,7 +66,6 @@ final class BaseAuthTests: XCTestCase {
 
 // MARK: - MockBaseAuth
 
-@available(macOS 10.15, *)
 private class MockBaseAuth: BaseAuth {
     // MARK: Lifecycle
 
@@ -96,7 +94,6 @@ private class MockBaseAuth: BaseAuth {
 
 // MARK: - MockResponse
 
-@available(macOS 10.15, *)
 private class MockResponse: Response {
     var didReadAllFormSyncStream = false
     var didReadAllFormAsyncStream = false

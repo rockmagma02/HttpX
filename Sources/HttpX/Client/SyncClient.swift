@@ -17,7 +17,6 @@ import Foundation
 import SyncStream
 
 /// Synchronous HTTP client.
-@available(macOS 10.15, *)
 public class SyncClient: BaseClient {
     // MARK: Lifecycle
 
