@@ -32,7 +32,6 @@ public class AsyncClient: BaseClient {
     ///     - params: The query parameters to append to the URL. Defaults to `nil`, should be merged with the `params`.
     ///     - headers: The HTTP headers to send with the request. Defaults to `nil`,
     ///              should be merged with the `headers`.
-    ///      - timeout: The timeout interval for the request. Defaults to `nil`, should be merged with the `timeout`.
     ///     - auth: The authentication strategy to use for the request. Defaults to `nil`, should override the `auth`.
     ///     - followRedirects: A Boolean value indicating whether the client should follow
     ///             HTTP redirects. Defaults to `nil`, should override the `followRedirects`.
@@ -46,7 +45,6 @@ public class AsyncClient: BaseClient {
         content: Content? = nil,
         params: QueryParamsType? = nil,
         headers: HeadersType? = nil,
-        timeout: TimeInterval? = nil,
         auth: AuthType? = nil,
         followRedirects: Bool? = nil, // swiftlint:disable:this discouraged_optional_boolean
         chunkSize: Int? = nil
@@ -56,8 +54,7 @@ public class AsyncClient: BaseClient {
             url: url,
             content: content,
             params: params,
-            headers: headers,
-            timeout: timeout
+            headers: headers
         )
         return try await sendRequest(
             request: request,

@@ -40,19 +40,19 @@ public func request(
     headers: HeadersType? = nil,
     cookies: CookiesType? = nil,
     auth: AuthType? = nil,
-    timeout: TimeInterval = kDefaultTimeout,
+    timeout: Timeout = .init(),
     followRedirects: Bool = false,
     chunkSize: Int? = nil
 ) throws -> Response {
     try SyncClient(
-        cookies: cookies
+        cookies: cookies,
+        timeout: timeout
     ).request(
         method: method,
         url: url,
         content: content,
         params: params,
         headers: headers,
-        timeout: timeout,
         auth: auth,
         followRedirects: followRedirects,
         chunkSize: chunkSize
@@ -79,7 +79,7 @@ public func get(
     headers: HeadersType? = nil,
     cookies: CookiesType? = nil,
     auth: AuthType? = nil,
-    timeout: TimeInterval = kDefaultTimeout,
+    timeout: Timeout = .init(),
     followRedirects: Bool = false,
     chunkSize: Int? = nil
 ) throws -> Response {
@@ -118,7 +118,7 @@ public func post(
     headers: HeadersType? = nil,
     cookies: CookiesType? = nil,
     auth: AuthType? = nil,
-    timeout: TimeInterval = kDefaultTimeout,
+    timeout: Timeout = .init(),
     followRedirects: Bool = false,
     chunkSize: Int? = nil
 ) throws -> Response {
@@ -158,7 +158,7 @@ public func put(
     headers: HeadersType? = nil,
     cookies: CookiesType? = nil,
     auth: AuthType? = nil,
-    timeout: TimeInterval = kDefaultTimeout,
+    timeout: Timeout = .init(),
     followRedirects: Bool = false,
     chunkSize: Int? = nil
 ) throws -> Response {
@@ -198,7 +198,7 @@ public func patch(
     headers: HeadersType? = nil,
     cookies: CookiesType? = nil,
     auth: AuthType? = nil,
-    timeout: TimeInterval = kDefaultTimeout,
+    timeout: Timeout = .init(),
     followRedirects: Bool = false,
     chunkSize: Int? = nil
 ) throws -> Response {
@@ -238,7 +238,7 @@ public func delete(
     headers: HeadersType? = nil,
     cookies: CookiesType? = nil,
     auth: AuthType? = nil,
-    timeout: TimeInterval = kDefaultTimeout,
+    timeout: Timeout = .init(),
     followRedirects: Bool = false,
     chunkSize: Int? = nil
 ) throws -> Response {
@@ -280,19 +280,19 @@ public func request(
     headers: HeadersType? = nil,
     cookies: CookiesType? = nil,
     auth: AuthType? = nil,
-    timeout: TimeInterval = kDefaultTimeout,
+    timeout: Timeout = .init(),
     followRedirects: Bool = false,
     chunkSize: Int? = nil
 ) async throws -> Response {
     try await AsyncClient(
-        cookies: cookies
+        cookies: cookies,
+        timeout: timeout
     ).request(
         method: method,
         url: url,
         content: content,
         params: params,
         headers: headers,
-        timeout: timeout,
         auth: auth,
         followRedirects: followRedirects,
         chunkSize: chunkSize
@@ -319,7 +319,7 @@ public func get(
     headers: HeadersType? = nil,
     cookies: CookiesType? = nil,
     auth: AuthType? = nil,
-    timeout: TimeInterval = kDefaultTimeout,
+    timeout: Timeout = .init(),
     followRedirects: Bool = false,
     chunkSize: Int? = nil
 ) async throws -> Response {
@@ -358,7 +358,7 @@ public func post(
     headers: HeadersType? = nil,
     cookies: CookiesType? = nil,
     auth: AuthType? = nil,
-    timeout: TimeInterval = kDefaultTimeout,
+    timeout: Timeout = .init(),
     followRedirects: Bool = false,
     chunkSize: Int? = nil
 ) async throws -> Response {
@@ -398,7 +398,7 @@ public func put(
     headers: HeadersType? = nil,
     cookies: CookiesType? = nil,
     auth: AuthType? = nil,
-    timeout: TimeInterval = kDefaultTimeout,
+    timeout: Timeout = .init(),
     followRedirects: Bool = false,
     chunkSize: Int? = nil
 ) async throws -> Response {
@@ -438,7 +438,7 @@ public func patch(
     headers: HeadersType? = nil,
     cookies: CookiesType? = nil,
     auth: AuthType? = nil,
-    timeout: TimeInterval = kDefaultTimeout,
+    timeout: Timeout = .init(),
     followRedirects: Bool = false,
     chunkSize: Int? = nil
 ) async throws -> Response {
@@ -478,7 +478,7 @@ public func delete(
     headers: HeadersType? = nil,
     cookies: CookiesType? = nil,
     auth: AuthType? = nil,
-    timeout: TimeInterval = kDefaultTimeout,
+    timeout: Timeout = .init(),
     followRedirects: Bool = false,
     chunkSize: Int? = nil
 ) async throws -> Response {

@@ -28,7 +28,7 @@ public extension URL {
     /// - Parameter newItems: The new query items to merge into the URL.
     /// - Throws: `URLError.badURL` if the URL cannot be properly constructed with the new query items.
     mutating func mergeQueryItems(_ newItems: [URLQueryItem]) throws {
-        var components = URLComponents(string: absoluteString)!
+        var components = URLComponents(url: self, resolvingAgainstBaseURL: true)!
         var queryItems = components.queryItems ?? []
         for item in newItems {
             if let index = queryItems.firstIndex(where: { $0.name == item.name }) {
