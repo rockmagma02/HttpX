@@ -87,11 +87,7 @@ public class BaseClient {
     // MARK: Public
 
     /// Returns the timeout interval for the request.
-    public var timeout: Timeout {
-        timeoutPrivate.request = session.configuration.timeoutIntervalForRequest
-        timeoutPrivate.resource = session.configuration.timeoutIntervalForResource
-        return timeoutPrivate
-    }
+    public var timeout: Timeout { timeoutPrivate }
 
     /// Returns the event hooks allowing for observing and mutating request and response.
     public var eventHooks: EventHooks { eventHooksPrivate }
@@ -128,21 +124,6 @@ public class BaseClient {
     /// Returns the cookies storage for the client.
     public var cookieStorage: HTTPCookieStorage? {
         session.configuration.httpCookieStorage
-    }
-
-    /// Sets the timeout interval for the request.
-    public func setTimeout(_ timeout: Timeout) {
-        timeoutPrivate = timeout
-    }
-
-    /// Sets the timeout interval for the request.
-    public func setTimeout(connect: TimeInterval? = nil, request: TimeInterval? = nil, resource: TimeInterval? = nil) {
-        let timeout = Timeout(
-            connect: connect ?? timeout.connect,
-            request: request ?? timeoutPrivate.request,
-            resource: resource ?? timeoutPrivate.resource
-        )
-        setTimeout(timeout)
     }
 
     /// Sets the event hooks allowing for observing and mutating request and response.
@@ -366,10 +347,5 @@ public class BaseClient {
     private var cookieIdentifier: String
     private var configurationPrivate: URLSessionConfiguration
 
-    private var timeoutPrivate: Timeout {
-        didSet {
-            session.configuration.timeoutIntervalForRequest = timeoutPrivate.request
-            session.configuration.timeoutIntervalForResource = timeoutPrivate.resource
-        }
-    }
+    private var timeoutPrivate: Timeout
 }
