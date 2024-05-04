@@ -32,7 +32,6 @@ import Foundation
 /// - Returns: The response received from the server.
 ///
 /// - Throws: An error if the request fails.
-@available(macOS 10.15, *)
 public func request(
     method: HTTPMethod,
     url: URLType,
@@ -74,7 +73,6 @@ public func request(
 /// - Returns: The response received from the server.
 ///
 /// - Throws: An error if the request fails.
-@available(macOS 10.15, *)
 public func get(
     url: URLType,
     params: QueryParamsType? = nil,
@@ -113,7 +111,6 @@ public func get(
 /// - Returns: The response received from the server.
 ///
 /// - Throws: An error if the request fails.
-@available(macOS 10.15, *)
 public func post(
     url: URLType,
     content: Content? = nil,
@@ -154,7 +151,6 @@ public func post(
 /// - Returns: The response received from the server.
 ///
 /// - Throws: An error if the request fails.
-@available(macOS 10.15, *)
 public func put(
     url: URLType,
     content: Content? = nil,
@@ -195,7 +191,6 @@ public func put(
 /// - Returns: The response received from the server.
 ///
 /// - Throws: An error if the request fails.
-@available(macOS 10.15, *)
 public func patch(
     url: URLType,
     content: Content? = nil,
@@ -236,7 +231,6 @@ public func patch(
 /// - Returns: The response received from the server.
 ///
 /// - Throws: An error if the request fails.
-@available(macOS 10.15, *)
 public func delete(
     url: URLType,
     content: Content? = nil,
@@ -278,7 +272,6 @@ public func delete(
 /// - Returns: The response received from the server.
 ///
 /// - Throws: An error if the request fails.
-@available(macOS 10.15, *)
 public func request(
     method: HTTPMethod,
     url: URLType,
@@ -320,7 +313,6 @@ public func request(
 /// - Returns: The response received from the server.
 ///
 /// - Throws: An error if the request fails.
-@available(macOS 10.15, *)
 public func get(
     url: URLType,
     params: QueryParamsType? = nil,
@@ -359,7 +351,6 @@ public func get(
 /// - Returns: The response received from the server.
 ///
 /// - Throws: An error if the request fails.
-@available(macOS 10.15, *)
 public func post(
     url: URLType,
     content: Content? = nil,
@@ -400,7 +391,6 @@ public func post(
 /// - Returns: The response received from the server.
 ///
 /// - Throws: An error if the request fails.
-@available(macOS 10.15, *)
 public func put(
     url: URLType,
     content: Content? = nil,
@@ -441,7 +431,6 @@ public func put(
 /// - Returns: The response received from the server.
 ///
 /// - Throws: An error if the request fails.
-@available(macOS 10.15, *)
 public func patch(
     url: URLType,
     content: Content? = nil,
@@ -482,7 +471,6 @@ public func patch(
 /// - Returns: The response received from the server.
 ///
 /// - Throws: An error if the request fails.
-@available(macOS 10.15, *)
 public func delete(
     url: URLType,
     content: Content? = nil,
