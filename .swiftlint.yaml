@@ -163,6 +163,10 @@ type_name:
   min_length: 2
   max_length: 50
 
+type_body_length:
+  warning: 400
+  error: 600
+
 identifier_name:
   min_length: 2
   max_length: 50
