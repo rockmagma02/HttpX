@@ -130,11 +130,12 @@ public class BaseClient {
     /// **Important**: This method will invalidate the current `URLSession` instance and create a new one.
     ///     It's necessary to call this method when no request is in progress.
     @discardableResult
-    public func timeout(_: Timeout) -> Self {
+    public func timeout(_ timeout: Timeout) -> Self {
         session.invalidateAndCancel()
         configurationPrivate.timeoutIntervalForRequest = timeout.request
         configurationPrivate.timeoutIntervalForResource = timeout.resource
         session = URLSession(configuration: configurationPrivate, delegate: HttpXDelegate(), delegateQueue: nil)
+        timeoutPrivate = timeout
         return self
     }
 
