@@ -52,7 +52,7 @@ final class AsyncClientTests: XCTestCase {
                 { $0.defaultEncoding = .iso2022JP },
             ]
         )
-        client.setEventHooks(eventHooks)
+        client.eventHooks(eventHooks)
 
         let response = try await client.request(
             method: .post,

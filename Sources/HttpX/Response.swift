@@ -18,7 +18,6 @@ import os.log
 
 // MARK: - Response
 
-// swiftlint:disable:next type_body_length
 public class Response: CustomStringConvertible, IteratorProtocol, Sequence, AsyncIteratorProtocol, AsyncSequence {
     // MARK: Lifecycle
 

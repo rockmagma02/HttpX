@@ -49,7 +49,7 @@ final class SyncClientTests: XCTestCase {
                 { $0.defaultEncoding = .iso2022JP },
             ]
         )
-        client.setEventHooks(eventHooks)
+        client.eventHooks(eventHooks)
 
         let response = try client.request(
             method: .get,

@@ -44,7 +44,7 @@ public class BaseClient {
     ///         Every Requests' URL will be merged with this URL before sending.
     ///   - defaultEncoding: The default string encoding for the request. Defaults to `.utf8`.
     ///   - configuration: The configuration for the `URLSession`. Defaults to `.default`.
-    public init(
+    public required init(
         auth: AuthType? = nil,
         params: QueryParamsType? = nil,
         headers: HeadersType? = nil,
@@ -104,7 +104,7 @@ public class BaseClient {
     /// Returns the cookies sent with every request.
     public var cookies: [HTTPCookie] {
         let storage = session.configuration.httpCookieStorage
-        return storage!.cookies!
+        return storage?.cookies ?? []
     }
 
     /// Returns the query parameters appended to every request.
@@ -126,40 +126,132 @@ public class BaseClient {
         session.configuration.httpCookieStorage
     }
 
+    /// Set the timeout interval for the request.
+    /// **Important**: This method will invalidate the current `URLSession` instance and create a new one.
+    ///     It's necessary to call this method when no request is in progress.
+    @discardableResult
+    public func timeout(_ timeout: Timeout) -> Self {
+        session.invalidateAndCancel()
+        configurationPrivate.timeoutIntervalForRequest = timeout.request
+        configurationPrivate.timeoutIntervalForResource = timeout.resource
+        session = URLSession(configuration: configurationPrivate, delegate: HttpXDelegate(), delegateQueue: nil)
+        timeoutPrivate = timeout
+        return self
+    }
+
+    /// Set the timeout interval for the request.
+    /// **Important**: This method will invalidate the current `URLSession` instance and create a new one.
+    ///     It's necessary to call this method when no request is in progress.
+    @discardableResult
+    public func timeout(
+        connect: TimeInterval? = nil,
+        request: TimeInterval? = nil,
+        resource: TimeInterval? = nil
+    ) -> Self {
+        let timeout = Timeout(
+            connect: connect ?? timeout.connect,
+            request: request ?? timeout.request,
+            resource: resource ?? timeout.resource
+        )
+        return self.timeout(timeout)
+    }
+
     /// Sets the event hooks allowing for observing and mutating request and response.
-    public func setEventHooks(_ eventHooks: EventHooks) {
+    @discardableResult
+    public func eventHooks(_ eventHooks: EventHooks) -> Self {
         eventHooksPrivate = eventHooks
+        return self
     }
 
     /// Sets the authentication strategy used for network requests.
-    public func setAuth(_ auth: AuthType) {
+    @discardableResult
+    public func auth(_ auth: AuthType) -> Self {
         authPrivate = auth.buildAuth()
+        return self
     }
 
     /// Sets the base URL for the network requests.
-    public func setBaseURL(_ baseURL: URLType) {
+    @discardableResult
+    public func baseURL(_ baseURL: URLType) -> Self {
         baseURLPrivate = baseURL.buildURL()
+        return self
     }
 
     /// Sets the HTTP headers to be sent with every request.
-    public func setHeaders(_ headers: HeadersType) {
+    @discardableResult
+    public func headers(_ headers: HeadersType) -> Self {
         headersPrivate = headers.buildHeaders()
+        return self
+    }
+
+    /// Sets the cookies to be sent with every request.
+    @discardableResult
+    public func cookies(_ cookies: CookiesType) -> Self {
+        let storage = session.configuration.httpCookieStorage
+        for cookie in cookies.buildCookies() {
+            storage?.setCookie(cookie)
+        }
+        return self
     }
 
     /// Sets the query parameters to be appended to every request.
-    public func setParams(_ params: QueryParamsType) {
+    @discardableResult
+    public func params(_ params: QueryParamsType) -> Self {
         paramsPrivate = params.buildQueryItems()
+        return self
     }
 
     /// Sets the redirect behavior for the client.
-    public func setRedirects(follow: Bool = false, max: Int = kDefaultMaxRedirects) {
+    @discardableResult
+    public func followRedirects(_ follow: Bool) -> Self {
         followRedirectsPrivate = follow
+        return self
+    }
+
+    /// Sets the maximum number of redirects to follow.
+    @discardableResult
+    public func maxRedirects(_ max: Int) -> Self {
         maxRedirectsPrivate = max
+        return self
     }
 
     /// Sets the default string encoding for the request.
-    public func setDefaultEncoding(_ encoding: String.Encoding) {
+    @discardableResult
+    public func defaultEncoding(_ encoding: String.Encoding) -> Self {
         defaultEncodingPrivate = encoding
+        return self
+    }
+
+    /// Sets the configuration for the client.
+    /// **Important**: This method will invalidate the current `URLSession` instance and create a new one.
+    ///     It's necessary to call this method when no request is in progress.
+    @discardableResult
+    public func configurations(_ newConfig: URLSessionConfiguration) -> Self {
+        newConfig.httpCookieStorage = session.configuration.httpCookieStorage
+        newConfig.timeoutIntervalForRequest = timeoutPrivate.request
+        newConfig.timeoutIntervalForResource = timeoutPrivate.resource
+        configurationPrivate = newConfig
+        session.invalidateAndCancel()
+        session = URLSession(configuration: configurationPrivate, delegate: HttpXDelegate(), delegateQueue: nil)
+        return self
+    }
+
+    /// Make a copy of the client.
+    public func copy() -> Self {
+        Self(
+            auth: .class(authPrivate),
+            params: .class(paramsPrivate),
+            headers: .array(headersPrivate),
+            cookies: .cookieArray(cookies),
+            cookieIdentifier: cookieIdentifier,
+            timeout: timeoutPrivate,
+            followRedirects: followRedirectsPrivate,
+            maxRedirects: maxRedirectsPrivate,
+            eventHooks: eventHooksPrivate,
+            baseURL: baseURLPrivate == nil ? nil : .class(baseURLPrivate!),
+            defaultEncoding: defaultEncodingPrivate,
+            configuration: configurationPrivate
+        )
     }
 
     /// Builds a URLRequest with the specified parameters.
