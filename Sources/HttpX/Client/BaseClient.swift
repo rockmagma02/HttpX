@@ -44,7 +44,7 @@ public class BaseClient {
     ///         Every Requests' URL will be merged with this URL before sending.
     ///   - defaultEncoding: The default string encoding for the request. Defaults to `.utf8`.
     ///   - configuration: The configuration for the `URLSession`. Defaults to `.default`.
-    public init(
+    public required init(
         auth: AuthType? = nil,
         params: QueryParamsType? = nil,
         headers: HeadersType? = nil,
@@ -233,6 +233,24 @@ public class BaseClient {
         session.invalidateAndCancel()
         session = URLSession(configuration: configurationPrivate, delegate: HttpXDelegate(), delegateQueue: nil)
         return self
+    }
+
+    /// Make a copy of the client.
+    public func copy() -> Self {
+        Self(
+            auth: .class(authPrivate),
+            params: .class(paramsPrivate),
+            headers: .array(headersPrivate),
+            cookies: .cookieArray(cookies),
+            cookieIdentifier: cookieIdentifier,
+            timeout: timeoutPrivate,
+            followRedirects: followRedirectsPrivate,
+            maxRedirects: maxRedirectsPrivate,
+            eventHooks: eventHooksPrivate,
+            baseURL: baseURLPrivate == nil ? nil : .class(baseURLPrivate!),
+            defaultEncoding: defaultEncodingPrivate,
+            configuration: configurationPrivate
+        )
     }
 
     /// Builds a URLRequest with the specified parameters.
