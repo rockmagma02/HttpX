@@ -38,26 +38,35 @@ final class BaseClientTests: XCTestCase {
     func testSetAndGet() {
         let emptyClient = BaseClient()
 
-        emptyClient.setEventHooks(EventHooks())
+        emptyClient.timeout(connect: 1, request: 2, resource: 3)
+        XCTAssertEqual(emptyClient.timeout.connect, 1)
+        XCTAssertEqual(emptyClient.timeout.request, 2)
+        XCTAssertEqual(emptyClient.timeout.resource, 3)
+
+        emptyClient.eventHooks(EventHooks())
         XCTAssertTrue(emptyClient.eventHooks.request.isEmpty && emptyClient.eventHooks.response.isEmpty)
 
-        emptyClient.setAuth(AuthType.basic(("user", "pass")))
+        emptyClient.auth(AuthType.basic(("user", "pass")))
         XCTAssertTrue(emptyClient.auth is BasicAuth)
 
-        emptyClient.setBaseURL(URLType.string("https://example.com"))
+        emptyClient.baseURL(URLType.string("https://example.com"))
         XCTAssertEqual(emptyClient.baseURL, URL(string: "https://example.com"))
 
-        emptyClient.setHeaders(HeadersType.array([("key", "value")]))
+        emptyClient.cookies(CookiesType.cookieArray([HTTPCookie(properties: [.domain: "example.com", .path: "/", .name: "TestCookie", .value: "TestValue"])!]))
+        XCTAssertEqual(emptyClient.cookies.count, 1)
+
+        emptyClient.headers(HeadersType.array([("key", "value")]))
         XCTAssertTrue(emptyClient.headers.contains { $0.0 == "key" && $0.1 == "value" })
 
-        emptyClient.setParams(QueryParamsType.class([URLQueryItem(name: "key", value: "value")]))
+        emptyClient.params(QueryParamsType.class([URLQueryItem(name: "key", value: "value")]))
         XCTAssertTrue(emptyClient.params.contains { $0.name == "key" && $0.value == "value" })
 
-        emptyClient.setRedirects(follow: false, max: 10)
+        emptyClient.followRedirects(false)
+        emptyClient.maxRedirects(10)
         XCTAssertFalse(emptyClient.followRedirects)
         XCTAssertEqual(emptyClient.maxRedirects, 10)
 
-        emptyClient.setDefaultEncoding(.utf8)
+        emptyClient.defaultEncoding(.utf8)
         XCTAssertEqual(emptyClient.defaultEncoding, .utf8)
     }
 
